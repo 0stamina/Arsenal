@@ -30,15 +30,15 @@
 #define res_y 360
 const int FACING_LUT[] = {0,1,2,3,4,3,2,1};
 
-#define SPAWN_TIME_MIN 2.0f
-#define SPAWN_TIME_MAX 8.0f
+#define SPAWN_TIME_MIN 1.0f
+#define SPAWN_TIME_MAX 5.0f
 #define SPAWN_TIME_DELTA 0.5f
 extern float spawn_time;
 extern float spawn_timer;
 #define PICKUP_TIME 0.5f
 extern float pickup_timer;
 
-#define HEALTH_TIME 2.0f;
+#define HEALTH_TIME 1.0f;
 extern float health_timer;
 
 extern Vector2 cursor_pos;

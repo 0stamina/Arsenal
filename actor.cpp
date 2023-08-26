@@ -24,6 +24,7 @@ void destroy_actor(Actor* actor)
     if(actor->type == 2)
     {
         blood += actor->params[10];
+        PLAYER.health += 2;
     }
 }
 
