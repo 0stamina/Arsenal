@@ -2,8 +2,9 @@
 
 void init()
 {
-    bg_texture = LoadTexture("resources/background.png");
+    bg_texture = LoadTexture("resources/bg.png");
     arrow_texture = LoadTexture("resources/test_arrow.png");
+    spear_sprite_list.push_back(LoadTexture("resources/spear.png"));
 
     load_bullets();
     load_guns();
@@ -16,7 +17,7 @@ void init()
 int main(void)
 {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-    InitWindow(res_x*2, res_y*2, "Arsenal");
+    InitWindow(960, 720, "Arsenal");
     RenderTexture2D target = LoadRenderTexture(res_x, res_y);
 
     // The target's height is flipped (in the source Rectangle), due to OpenGL reasons
@@ -46,65 +47,76 @@ int main(void)
 
 
         delta = GetFrameTime();
-        step();
+        for(int n = 0; n < 1; n++)
+        {
+            step();
+        }
         
         BeginTextureMode(target);
 
             ClearBackground(BLACK);
-            DrawTexturePro(bg_texture, {(int)world_camera.target.x*5.0f, (int)world_camera.target.y*5.0f, (int)480.0f*5.0f, (int)480.0f*5.0f}, {0.0f, -60.0f, 480.0f, 480.0f}, Vector2Zero(), 0.0f, WHITE);
+            float base_w = bg_texture.width*4.0;
+            float scale = 1.0f;
+            Rectangle bg_src = {world_camera.target.x, world_camera.target.y, base_w, base_w};
+            Rectangle bg_dest = {0.0f, 0.0f, base_w, base_w};
+            DrawTexturePro(bg_texture, bg_src, bg_dest, Vector2Zero(), 0.0f, WHITE);
             
-
+            
             BeginMode2D(world_camera);
 
                 draw();
 
             EndMode2D();
 
-            //ui should go here
-            bool crate_on_screen = true;
-            if(crate_pos.y > world_camera.target.y+res_y){crate_on_screen=false;}
-            if(crate_pos.y < world_camera.target.y){crate_on_screen=false;}
-            if(crate_pos.x > world_camera.target.x+res_x){crate_on_screen=false;}
-            if(crate_pos.x < world_camera.target.x){crate_on_screen=false;}
-            if(!crate_on_screen)
-            {
-                float siz = 30.0f;
-                Vector2 heading = Vector2Subtract(crate_pos, Vector2Add(world_camera.target,{res_x/2.0f, res_y/2.0f}));
-                heading.x = Clamp(heading.x, -res_x/2.0f+siz, res_x/2.0f-siz);
-                heading.y = Clamp(heading.y, -res_y/2.0f+siz, res_y/2.0f-siz);
+            // //ui should go here
+            // bool crate_on_screen = true;
+            // Vector2 cam_center = Vector2Add(world_camera.target, world_camera.offset);
+            // if(0.0f > cam_center.y+res_y){crate_on_screen=false;}
+            // if(0.0f < cam_center.y){crate_on_screen=false;}
+            // if(0.0f > cam_center.x+res_x){crate_on_screen=false;}
+            // if(0.0f < cam_center.x){crate_on_screen=false;}
+            // if(!crate_on_screen)
+            // {
+            //     float siz = 30.0f;
+            //     Vector2 heading = Vector2Subtract({0.0f, 0.0f}, Vector2Add(cam_center,{res_x/2.0f, res_y/2.0f}));
+            //     heading.x = Clamp(heading.x, -res_x/2.0f+siz, res_x/2.0f-siz);
+            //     heading.y = Clamp(heading.y, -res_y/2.0f+siz, res_y/2.0f-siz);
 
-                Vector2 dir = Vector2Normalize(heading);
-                float angle = acosf(Vector2DotProduct({0.0f, -1.0f}, dir));
-                if(dir.x > 0.0f){angle*=-1.0f;}
+            //     Vector2 dir = Vector2Normalize(heading);
+            //     float angle = acosf(Vector2DotProduct({0.0f, -1.0f}, dir));
+            //     if(dir.x > 0.0f){angle*=-1.0f;}
 
-                Rectangle arrow_source = {0.0f, 0.0f, (float)arrow_texture.width, (float)arrow_texture.height};
-                Rectangle arrow_dest = {res_x/2.0f+heading.x, res_y/2.0f+heading.y, siz, siz};
+            //     Rectangle arrow_source = {0.0f, 0.0f, (float)arrow_texture.width, (float)arrow_texture.height};
+            //     Rectangle arrow_dest = {res_x/2.0f+heading.x, res_y/2.0f+heading.y, siz, siz};
 
-                DrawTexturePro(arrow_texture, arrow_source, arrow_dest, {siz/2.0f, siz/2.0f}, -angle*(360.0f/TAU), { 255, 255, 255, 60 });
-            }
+            //     DrawTexturePro(arrow_texture, arrow_source, arrow_dest, {siz/2.0f, siz/2.0f}, -angle*(360.0f/TAU), { 255, 255, 255, 60 });
+            // }
 
             //DrawText(std::to_string(spawn_time).c_str(), 10, 10, 10, WHITE);
             //DrawText(std::to_string(actor_list.size()).c_str(), 10, 25, 10, WHITE);
-            int score_width = MeasureText(std::to_string(num_crates).c_str(), 35);
+            int score_width = MeasureText(std::to_string(score).c_str(), 35);
             
-            DrawText(std::to_string(num_crates).c_str(), res_x-score_width-10, 10, 20, BLACK);
+            DrawText(std::to_string(score).c_str(), res_x-score_width-30, 10, 40, BLACK);
 
-            DrawRectangle(10, 10, actor_list[0].health / 1.0f, 15, MAROON);
-            DrawText(std::to_string((int)blood).c_str(), 10, 35, 20, DARKBROWN);
+            DrawRectangle(20, 20, actor_list[0].health / 1.0f, 15, MAROON);
+            DrawText(std::to_string((int)blood).c_str(), 20, 40, 40, DARKBROWN);
 
-            DrawText(gun_list[curr_gun].name, 10, res_y-35, 20, BLACK);
+            DrawText(gun_list[curr_gun].name, 20, res_y-70, 40, BLACK);
             if(curr_gun > 0)
             {
-                DrawRectangle(10, res_y-55, (float)gun_durability/(float)gun_list[curr_gun].durability*100.0f, 5, BLACK);
+                DrawRectangle(20, res_y-20, (float)gun_durability/(float)gun_list[curr_gun].durability*100.0f, 10, BLACK);
             }
 
-            if(!actor_list[0].exists){DrawText("Press R to Restart", res_x/2-(MeasureText("Press R to Restart", 20))/2, (res_y/2)-30, 20, BLACK);}
+            if(!actor_list[0].exists){DrawText("Press R to Restart", res_x/2-(MeasureText("Press R to Restart", 20))/2, (res_y/2)-30, 40, BLACK);}
 
         EndTextureMode();
 
         BeginDrawing();
+        BeginBlendMode(BLEND_ALPHA_PREMULTIPLY);
             ClearBackground(BLACK);
             DrawTexturePro(target.texture, screen_source, screen_dest, Vector2Zero(), 0.0f, WHITE);
+        EndBlendMode();
+        DrawFPS(0,0);
         EndDrawing();
 
     }
@@ -202,21 +214,47 @@ void restart()
         bullet_list.erase(bullet_list.begin()+i);
         continue;
     }
-
+    for (int i = bullet_list.size() - 1; i >= 0; i--)
+    {
+        bullet_list.erase(bullet_list.begin() + i);
+        continue;
+    }
+    for (int i = hook_list.size() - 1; i >= 0; i--)
+    {
+        hook_list.erase(hook_list.begin() + i);
+    }
     srand(time(0));
 
     spawn_timer = SPAWN_TIME_MAX;
     spawn_time = SPAWN_TIME_MAX;
 
     world_camera = { 0 };
+    world_camera.zoom = 1.0f;
+    world_camera.offset = Vector2Scale({(float)res_x, (float)res_y}, 1.0f/(2.0f));
+
     Actor player = Actor();
     init_actor(&player, {0.0f, 0.0f}, 1);
 
-    num_crates = 0;
-    crate_time = 0.0f;
-    new_crate();
+    score = 0;
+    for(int i = 0; i < 50; i++)
+    {
+        new_hook();
+    }
+
+    for(int i = 0; i < 15; i++)
+    {
+        float angle = randf(0.0f, TAU);
+        float dist = randf(100.0f, 300.0f);
+
+        Actor fish = Actor();
+        init_actor(&fish, {cosf(angle)*dist, -sinf(angle)*dist}, 3);
+    }
+
+    //blood = 100;
 
     curr_gun = 0;
     gun_cooldown = 0.0f;
     swap_gun();
+
+    cursor_pos = {0.0f, 0.0f};
 }

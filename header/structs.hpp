@@ -8,7 +8,8 @@ struct Sprite;
 struct Actor;
 struct Gun;
 struct Bullet;
+struct Hook;
 struct Animation;
-struct AnimationFrame;
+//struct AnimationFrame;
 
 #endif

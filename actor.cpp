@@ -17,7 +17,14 @@ void init_actor(Actor* actor, Vector2 pos, int type)
 void destroy_actor(Actor* actor)
 {
     unassign_sprite(actor->sprite_idx);
-    delete actor;
+    if(actor->type == 3)
+    {
+        active_fish--;
+    }
+    if(actor->type == 2)
+    {
+        blood += actor->params[10];
+    }
 }
 
 void move_actor(Actor* actor, Vector2 dir)
@@ -33,10 +40,10 @@ void push_actor(Actor* a1, Actor* a2, float dist)
     //player damage
     
         
-    if(a2 == &actor_list[0])
+    if(a1->type == 2 && a2 == &actor_list[0])
     {
         int j = 0;
-        for(j = 0; j < hit_data.size(); j++)
+        for(j = 0; j < signed(hit_data.size()); j++)
         {
             if(hit_data[j].source == (int)a1 && hit_data[j].actor == a2){j = -1;break;}
         }
@@ -46,7 +53,33 @@ void push_actor(Actor* a1, Actor* a2, float dist)
             add_hit(a2, (int)a1);
             damage_actor(a2, 1);
         }
-        
+    }
+    if(a1->type == 1 && a2->type == 2)
+    {
+        int j = 0;
+        for(j = 0; j < signed(hit_data.size()); j++)
+        {
+            if(hit_data[j].source == (int)a2 && hit_data[j].actor == a1){j = -1;break;}
+        }
+
+        if (j != -1)
+        {
+            add_hit(a1, (int)a2);
+            damage_actor(a1, 1);
+        }
+    }
+    
+    if(a1->type != 3 && a2->type == 3)
+    {
+        a2->exists = false;
+        if(a1->type == 1){blood+=1.0f;}
+        else{a2->params[10] += 1.0f;}
+    }
+    if(a1->type == 3 && a2->type != 3)
+    {
+        a1->exists = false;
+        if(a2->type == 1){blood+=1.0f;}
+        else{a2->params[10] += 1.0f;}
     }
 }
 

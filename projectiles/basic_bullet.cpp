@@ -4,6 +4,7 @@ void basic_bullet_step(Bullet* bullet)
 {
     for(unsigned int i = 1; i < actor_list.size(); i++)
     {
+        if(actor_list[i].type == 3){continue;}
         if(Vector2Distance(actor_list[i].position, bullet->position) <= actor_list[i].size+2.0f)
         {
             bullet->exists = false;

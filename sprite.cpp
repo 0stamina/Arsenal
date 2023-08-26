@@ -23,6 +23,8 @@ unsigned int assign_sprite(const char* file_name)
 
 void unassign_sprite(unsigned int idx)
 {
+    if(idx == -1){return;}
+    if(sprite_list.size() <= idx){return;}
     if(--sprite_list[idx].loaded_users == 0)
     {
         UnloadTexture(sprite_list[idx].texture);

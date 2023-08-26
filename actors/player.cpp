@@ -1,56 +1,14 @@
-
-#include "bullet_funcs.hpp"
-#include "bullet.hpp"
-#include "actor_funcs.hpp"
-#include "actor.hpp"
-#include "random.hpp"
 #include "global_vars.hpp"
 
 void player_init(Actor* actor)
 {
-    actor->sprite_idx = assign_sprite("resources/test_player.png");
+    actor->sprite_idx = assign_sprite("resources/player.png");
     //this is temporary you should be loading from a file
+    actor->region = { 0.0f, 0.0f, 24.0f, 24.0f };
     Animation idle = Animation();
-    AnimationFrame idle_frame_1 = AnimationFrame();
-    idle_frame_1.frame_time = 10;
-    idle_frame_1.region = {0, 0, 16, 16};
-    idle.frame_set.push_back(idle_frame_1);
-    AnimationFrame idle_frame_2 = AnimationFrame();
-    idle_frame_2.frame_time = 10;
-    idle_frame_2.region = {16, 0, 16, 16};
-    idle.frame_set.push_back(idle_frame_2);
-    AnimationFrame idle_frame_3 = AnimationFrame();
-    idle_frame_3.frame_time = 10;
-    idle_frame_3.region = {32, 0, 16, 16};
-    idle.frame_set.push_back(idle_frame_3);
+    idle.start = 0;
+    idle.end = 0;
     actor->animation_set.push_back(idle);
-    
-    Animation run = Animation();
-    AnimationFrame run_frame_1 = AnimationFrame();
-    run_frame_1.frame_time = 10;
-    run_frame_1.region = {0, 16, 16, 16};
-    run.frame_set.push_back(run_frame_1);
-    AnimationFrame run_frame_2 = AnimationFrame();
-    run_frame_2.frame_time = 10;
-    run_frame_2.region = {16, 16, 16, 16};
-    run.frame_set.push_back(run_frame_2);
-    AnimationFrame run_frame_3 = AnimationFrame();
-    run_frame_3.frame_time = 10;
-    run_frame_3.region = {32, 16, 16, 16};
-    run.frame_set.push_back(run_frame_3);
-    AnimationFrame run_frame_4 = AnimationFrame();
-    run_frame_4.frame_time = 10;
-    run_frame_4.region = {48, 16, 16, 16};
-    run.frame_set.push_back(run_frame_4);
-    actor->animation_set.push_back(run);
-    
-    Animation back_run = Animation();
-    back_run.frame_set.push_back(run_frame_4);
-    back_run.frame_set.push_back(run_frame_3);
-    back_run.frame_set.push_back(run_frame_2);
-    back_run.frame_set.push_back(run_frame_1);
-
-    actor->animation_set.push_back(back_run);
 }
 
 void player_step(Actor* actor)
@@ -61,13 +19,21 @@ void player_step(Actor* actor)
     if(IsKeyDown(KEY_A)) actor->move_dir.x-=1.0f;
     if(IsKeyDown(KEY_D)) actor->move_dir.x+=1.0f;
 
-    int test_face = -1;
-    if(actor->move_dir.x > 0.0f){test_face = 0;}
-    if(actor->move_dir.x < 0.0f){test_face = 1;}
+    if(Vector2Length(actor->move_dir) > 0.05f)
+    {
+        Vector2 dir = Vector2Normalize(actor->move_dir);
+        //atan2d(dir.x,y1*y2);
+        float angle = atan2f(dir.x,dir.y)+TAU*(17.0f/16.0f);
+        if(signbit(angle)){angle*=-1.0f;}
+        actor->facing = floorf(fmodf(angle, TAU)/(TAU/8.0f));
+    }
 
-    if(Vector2Length(actor->move_dir) < 0.5f ){player_swap(actor, 0);}
-    else if(test_face == actor->facing){player_swap(actor, 1);}
-    else{player_swap(actor, 2);}
+
+    float ele = (delta*1.5f)+*(float*)&actor->params[2];
+
+    if(ele >= TAU){ele -= TAU;}
+
+    actor->params[2] = *(int*)&ele;
 }
 
 void player_swap(Actor* actor, int state)
@@ -76,4 +42,18 @@ void player_swap(Actor* actor, int state)
     actor->aframe = 0;
     actor->gframe = 0;
     actor->state = state;
+}
+
+void player_draw(Actor* actor)
+{
+    Rectangle region = actor->region;
+    region.x = FACING_LUT[actor->facing]*region.width;
+
+    Vector2 origin = Vector2Add(actor->position, { -region.width / 2.0f, -region.height / 2.0f });
+    origin.x = (int)origin.x;
+    origin.y = (int)origin.y;
+    origin.y += sinf(*(float*)&actor->params[2])*2.0f-2.0f;
+    if(actor->facing > 4){region.width*=-1.0f;}
+
+    DrawTextureRec(sprite_list[actor->sprite_idx].texture, region, origin, WHITE);
 }

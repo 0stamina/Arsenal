@@ -7,5 +7,5 @@ float randi(int lo, int hi)
 
 float randf(float lo, float hi)
 {
-    return lo + (float)(rand()) / (float)(RAND_MAX/hi-lo);
+    return lo + (float)(rand()) / (float)(RAND_MAX/(hi-lo));
 }

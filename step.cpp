@@ -3,8 +3,10 @@
 
 void step()
 {
-    if((!actor_list[0].exists||IsKeyDown(KEY_RIGHT_CONTROL)||IsKeyDown(KEY_LEFT_CONTROL)) && IsKeyPressed(KEY_R)){restart();}
-    if(!actor_list[0].exists){return;}
+    if((!PLAYER.exists||IsKeyDown(KEY_RIGHT_CONTROL)||IsKeyDown(KEY_LEFT_CONTROL)) && IsKeyPressed(KEY_R)){
+        restart();
+    }
+    if(!PLAYER.exists){return;}
 
     
     if(IsKeyPressed(KEY_RIGHT)){curr_gun++; swap_gun();}
@@ -35,16 +37,7 @@ void step()
         {
             if(i)
             {
-                if(Vector2Distance(actor_list[0].position, crate_pos) < CRATE_RADIUS)
-                {
-                    crate_time += 3.0f*(powf(blood+1.0f, 0.33f));
-                    blood -= 1.0f;
-                    if(blood <= 0.0f){blood = 0.0f;}
-                }
-                else
-                {
-                    blood+=1.0f;
-                }
+                destroy_actor(&actor_list[i]);
                 actor_list.erase(actor_list.begin()+i);
             }
             continue;
@@ -60,20 +53,15 @@ void step()
 
 
     //camera follow player
-    world_camera.zoom = 1.0f;
-
-    Vector2 targ_pos = actor_list[0].position;
-    world_camera.target = Vector2Add(targ_pos, Vector2Scale({-(float)res_x, -(float)res_y}, 1.0f/(2.0f*world_camera.zoom)));
+    world_camera.target.x = (int)PLAYER.position.x;
+    world_camera.target.y = (int)PLAYER.position.y;
     
     //get cursor position in scaled screenspace
     cursor_set();
 
     //camera follow cursor
     world_camera.target = Vector2Add(world_camera.target , Vector2Scale(cursor_pos, 0.2f));
-    
-    if(cursor_pos.x > 0.0f){actor_list[0].facing = 0;}
-    if(cursor_pos.x < 0.0f){actor_list[0].facing = 1;}
-    
+
     //spawn new enemy
     if(spawn_timer <= 0.0f)
     {
@@ -96,25 +84,27 @@ void step()
     {
         spawn_timer -= delta;
     }
+    
+    if(pickup_timer <= 0.0f && active_fish < 50)
+    {
+        float angle = randf(0.0f, TAU);
+        float dist = randf(400.0f, 500.0f);
+        Vector2 offset = {cosf(angle)*dist, -sinf(angle)*dist};
+
+        Vector2 pos = Vector2Add(offset, actor_list[0].position);
+
+        Actor fish = Actor();
+        init_actor(&fish, pos, 3);
+
+        pickup_timer = PICKUP_TIME;
+    }
+    else
+    {
+        pickup_timer -= delta;
+    }
 
     //box unlock
-    if(Vector2Distance(actor_list[0].position, crate_pos) < CRATE_RADIUS){crate_time += delta;}
-    else{crate_time -= delta;}
-    
-    //this is out of the if because of enemies
-    if(crate_time >= CRATE_TIME_MAX)
-    {
-        new_crate();
-        int g = curr_gun;
-        do
-        {
-            curr_gun = randi(1, gun_list.size());
-        }while(curr_gun == g);
-
-        swap_gun();
-        num_crates++;
-    }
-    if(crate_time <= 0){crate_time = 0.0f;}
+    fill_hooks();
 
 
     //shoot
@@ -123,8 +113,18 @@ void step()
     {
         curr_gun = 0;
     }
-
+    process_spear();
     proccess_hits();
+
+    if(health_timer <= 0.0f)
+    {
+        damage_actor(&PLAYER, 1);
+        health_timer = HEALTH_TIME;
+    }
+    else
+    {
+        health_timer -= delta;
+    }
 
     return;
 }
@@ -143,6 +143,8 @@ void collision(Actor* actor)
 
 void cursor_set()
 {
+    if(Vector2Length(GetMouseDelta()) <= 0.0f){return;}
+
     cursor_pos = GetMousePosition();
     float x_ratio = (float)res_x / (float)GetScreenWidth();
     float y_ratio = (float)res_y / (float)GetScreenHeight();
@@ -159,7 +161,7 @@ void cursor_set()
     }
     cursor_pos = GetScreenToWorld2D(cursor_pos, world_camera);
 
-    cursor_pos = Vector2Subtract(Vector2Subtract(cursor_pos, world_camera.target), { res_x / 2.0f, res_y / 2.0f });
+    cursor_pos = Vector2Subtract(cursor_pos, world_camera.target);
     cursor_pos.x = Clamp(cursor_pos.x, -res_x/2.0f,res_x/2.0f);
     cursor_pos.y = Clamp(cursor_pos.y, -res_y/2.0f,res_y/2.0f);
 }

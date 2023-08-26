@@ -5,6 +5,7 @@ void pierce_bullet_step(Bullet* bullet)
     
     for(unsigned int i = 1; i < actor_list.size(); i++)
     {
+        if(actor_list[i].type == 3){continue;}
         int j = 0;
         for(j = 0; j < hit_data.size(); j++)
         {

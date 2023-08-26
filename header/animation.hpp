@@ -6,14 +6,10 @@
 #include "rlgl.h"
 #include "raymath.h"
 
-struct AnimationFrame
-{
-    unsigned int frame_time;
-    Rectangle region;
-};
 struct Animation
 {
-    std::vector<AnimationFrame> frame_set;
+    int start;
+    int end;
 };
 
 #endif

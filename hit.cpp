@@ -5,7 +5,7 @@ void add_hit(Actor* actor, int source)
     Hit hit = Hit();
     hit.actor = actor;
     hit.source = source;
-    hit.time = 0.1f;
+    hit.time = 0.25f;
     hit_data.push_back(hit);
 }
 
