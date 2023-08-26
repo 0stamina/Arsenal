@@ -48,7 +48,6 @@ void step()
 
         move_actor(&actor, Vector2Scale(actor.move_dir, actor.speed));
         if(i){collision(&actor);}
-        
     }
 
 
@@ -118,7 +117,7 @@ void step()
 
     if(health_timer <= 0.0f)
     {
-        damage_actor(&PLAYER, 1);
+        damage_actor(&PLAYER, 2);
         health_timer = HEALTH_TIME;
     }
     else

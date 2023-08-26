@@ -68,29 +68,29 @@ int main(void)
 
             EndMode2D();
 
-            // //ui should go here
-            // bool crate_on_screen = true;
-            // Vector2 cam_center = Vector2Add(world_camera.target, world_camera.offset);
-            // if(0.0f > cam_center.y+res_y){crate_on_screen=false;}
-            // if(0.0f < cam_center.y){crate_on_screen=false;}
-            // if(0.0f > cam_center.x+res_x){crate_on_screen=false;}
-            // if(0.0f < cam_center.x){crate_on_screen=false;}
-            // if(!crate_on_screen)
-            // {
-            //     float siz = 30.0f;
-            //     Vector2 heading = Vector2Subtract({0.0f, 0.0f}, Vector2Add(cam_center,{res_x/2.0f, res_y/2.0f}));
-            //     heading.x = Clamp(heading.x, -res_x/2.0f+siz, res_x/2.0f-siz);
-            //     heading.y = Clamp(heading.y, -res_y/2.0f+siz, res_y/2.0f-siz);
+            //ui should go here
+            bool crate_on_screen = true;
+            Vector2 cam_center = Vector2Subtract(world_camera.target, world_camera.offset);
+            if(0.0f > cam_center.y+res_y){crate_on_screen=false;}
+            if(0.0f < cam_center.y){crate_on_screen=false;}
+            if(0.0f > cam_center.x+res_x){crate_on_screen=false;}
+            if(0.0f < cam_center.x){crate_on_screen=false;}
+            if(!crate_on_screen)
+            {
+                float siz = 30.0f;
+                Vector2 heading = Vector2Subtract({0.0f, 0.0f}, Vector2Add(cam_center,{res_x/2.0f, res_y/2.0f}));
+                heading.x = Clamp(heading.x, -res_x/2.0f+siz, res_x/2.0f-siz);
+                heading.y = Clamp(heading.y, -res_y/2.0f+siz, res_y/2.0f-siz);
 
-            //     Vector2 dir = Vector2Normalize(heading);
-            //     float angle = acosf(Vector2DotProduct({0.0f, -1.0f}, dir));
-            //     if(dir.x > 0.0f){angle*=-1.0f;}
+                Vector2 dir = Vector2Normalize(heading);
+                float angle = acosf(Vector2DotProduct({0.0f, -1.0f}, dir));
+                if(dir.x > 0.0f){angle*=-1.0f;}
 
-            //     Rectangle arrow_source = {0.0f, 0.0f, (float)arrow_texture.width, (float)arrow_texture.height};
-            //     Rectangle arrow_dest = {res_x/2.0f+heading.x, res_y/2.0f+heading.y, siz, siz};
+                Rectangle arrow_source = {0.0f, 0.0f, (float)arrow_texture.width, (float)arrow_texture.height};
+                Rectangle arrow_dest = {res_x/2.0f+heading.x, res_y/2.0f+heading.y, siz, siz};
 
-            //     DrawTexturePro(arrow_texture, arrow_source, arrow_dest, {siz/2.0f, siz/2.0f}, -angle*(360.0f/TAU), { 255, 255, 255, 60 });
-            // }
+                DrawTexturePro(arrow_texture, arrow_source, arrow_dest, {siz/2.0f, siz/2.0f}, -angle*(360.0f/TAU), { 255, 255, 255, 60 });
+            }
 
             //DrawText(std::to_string(spawn_time).c_str(), 10, 10, 10, WHITE);
             //DrawText(std::to_string(actor_list.size()).c_str(), 10, 25, 10, WHITE);
@@ -98,7 +98,7 @@ int main(void)
             
             DrawText(std::to_string(score).c_str(), res_x-score_width-30, 10, 40, BLACK);
 
-            DrawRectangle(20, 20, actor_list[0].health / 1.0f, 15, MAROON);
+            DrawRectangle(20, 20, PLAYER.health / 1.0f, 15, MAROON);
             DrawText(std::to_string((int)blood).c_str(), 20, 40, 40, DARKBROWN);
 
             DrawText(gun_list[curr_gun].name, 20, res_y-70, 40, BLACK);
@@ -107,7 +107,7 @@ int main(void)
                 DrawRectangle(20, res_y-20, (float)gun_durability/(float)gun_list[curr_gun].durability*100.0f, 10, BLACK);
             }
 
-            if(!actor_list[0].exists){DrawText("Press R to Restart", res_x/2-(MeasureText("Press R to Restart", 20))/2, (res_y/2)-30, 40, BLACK);}
+            if(!PLAYER.exists){DrawText("Press R to Restart", res_x/2-(MeasureText("Press R to Restart", 20))/2, (res_y/2)-30, 40, BLACK);}
 
         EndTextureMode();
 
@@ -234,6 +234,7 @@ void restart()
 
     Actor player = Actor();
     init_actor(&player, {0.0f, 0.0f}, 1);
+    //PLAYER.health = 1;
 
     score = 0;
     for(int i = 0; i < 50; i++)

@@ -35,6 +35,10 @@ void fill_hooks()
             if(hook_list[i].tier != 0)
             {
                 score += powf(2.0f, hook_list[i].tier-1);
+
+                PLAYER.health += 10*(int)(hook_list[i].tier);
+                if (PLAYER.health >= 100) { PLAYER.health = 100; }
+
                 hook_list.erase(hook_list.begin()+i);
 
                 do
@@ -44,9 +48,6 @@ void fill_hooks()
                 while(prev_gun == curr_gun);
                 prev_gun = curr_gun;
                 swap_gun();
-                
-                PLAYER.health += powf(5.0f, hook_list[i].tier);
-                if(PLAYER.health >= 100){PLAYER.health = 100;}
 
                 new_hook();
             }
