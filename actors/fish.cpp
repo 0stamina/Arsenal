@@ -27,7 +27,7 @@ void fish_init(Actor* actor)
 
 void fish_step(Actor* actor)
 {
-    if(Vector2Distance(PLAYER.position, actor->position) >= 500)
+    if(Vector2Distance(PLAYER.position, actor->position) >= 550)
     {
         Vector2 dir = Vector2Normalize(Vector2Subtract(PLAYER.position, actor->position));
         actor->position = Vector2Add(PLAYER.position, Vector2Scale(dir, 400));
@@ -45,12 +45,13 @@ void fish_step(Actor* actor)
                 //atan2d(x1*y2-y1*x2,x1*x2+y1*y2);
                 float angle = atan2f(-dir.y,dir.x);
                 //actor->params[0] = *(int*)&angle;
-                actor->params[1] = *(int*)&angle;
                 if(angle < 0){angle = TAU+angle;}
                 if(angle > TAU){angle = TAU-angle;}
+                actor->params[1] = *(int*)&angle;
 
                 float dif = angle-*(float*)&actor->params[0];
                 dif = fmod(dif+TAU/2.0f,TAU)-TAU/2.0f;
+                if(abs(dif) > TAU/2.0){dif = TAU+dif;}
                 dif/=30.0f;
                 float a = dif+*(float*)&actor->params[0];
                 if(a < 0){a = TAU+a;}
@@ -68,6 +69,7 @@ void fish_step(Actor* actor)
 
     float dif = *(float*)&actor->params[1]-*(float*)&actor->params[0];
     dif = fmod(dif+TAU/2.0f,TAU)-TAU/2.0f;
+    if(abs(dif) > TAU/2.0){dif = TAU+dif;}
 
     if(dif > 0.0f){accel+=0.005f;}
     else{accel-=0.005f;}

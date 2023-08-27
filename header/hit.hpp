@@ -11,7 +11,7 @@ struct Hit
 };
 
 
-void add_hit(Actor*, int);
+void add_hit(Actor*, int, float);
 void proccess_hits();
 
 #endif

@@ -15,7 +15,7 @@ void pierce_bullet_step(Bullet* bullet)
 
         if(Vector2Distance(actor_list[i].position, bullet->position) <= actor_list[i].size+2.0f)
         {
-            add_hit(&actor_list[i], (int)bullet);
+            add_hit(&actor_list[i], (int)bullet, 0.1f);
             damage_actor(&actor_list[i], bullet->damage);
         }
     }

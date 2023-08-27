@@ -107,7 +107,7 @@ int main(void)
                 DrawRectangle(20, res_y-20, (float)gun_durability/(float)gun_list[curr_gun].durability*100.0f, 10, BLACK);
             }
 
-            if(!PLAYER.exists){DrawText("Press R to Restart", res_x/2-(MeasureText("Press R to Restart", 20))/2, (res_y/2)-30, 40, BLACK);}
+            if(!PLAYER.exists){DrawText("Press R to Restart", res_x/2-(MeasureText("Press R to Restart", 20))/2, (res_y/2)-30, 20, BLACK);}
 
         EndTextureMode();
 
@@ -166,14 +166,14 @@ void load_guns()
 
     Gun shotgun = Gun();
     shotgun.name = "Shotgun";
-    shotgun.damage = 34;
+    shotgun.damage = 52;
     shotgun.bullet_time = 0.5;
     shotgun.bullet_amt = 5;
     shotgun.bullet_type = 1;
     shotgun.bullet_speed = 6.0f;
     shotgun.fire_rate = 0.4f;
     shotgun.spread = 0.3f;
-    shotgun.durability = 150;
+    shotgun.durability = 80;
     gun_list.push_back(shotgun);
     
     Gun flamethrower = Gun();
@@ -227,6 +227,8 @@ void restart()
 
     spawn_timer = SPAWN_TIME_MAX;
     spawn_time = SPAWN_TIME_MAX;
+    pickup_timer = PICKUP_TIME;
+    health_timer = HEALTH_TIME;
 
     world_camera = { 0 };
     world_camera.zoom = 1.0f;
@@ -242,7 +244,7 @@ void restart()
         new_hook();
     }
 
-    for(int i = 0; i < 15; i++)
+    for(int i = 0; i < 20; i++)
     {
         float angle = randf(0.0f, TAU);
         float dist = randf(100.0f, 300.0f);
@@ -251,7 +253,8 @@ void restart()
         init_actor(&fish, {cosf(angle)*dist, -sinf(angle)*dist}, 3);
     }
 
-    //blood = 100;
+    blood = 0;
+    active_fish = 0;
 
     curr_gun = 0;
     gun_cooldown = 0.0f;

@@ -3,14 +3,17 @@
 
 void draw()
 {
+    DrawRing({0.0f, 0.0f}, 1550.0f, 1540.0f, 0.0f, 360.0f, 100, RED);
     draw_hooks();
     
+    //float max_dist = 100.0f * powf((threat*((float)blood+1.0f))*5.0f, 0.1f);
     //draw actors
     for(unsigned int i = 0; i < actor_list.size(); i++)
     {
         Actor& actor = actor_list[i];
         if(!actor_list[i].exists){continue;}
         actor_draw[actor.type](&actor);
+        
     }
     //draw projectiles
     for(unsigned int i = 0; i < bullet_list.size(); i++)

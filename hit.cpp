@@ -1,11 +1,11 @@
 #include "global_vars.hpp"
 
-void add_hit(Actor* actor, int source)
+void add_hit(Actor* actor, int source, float time)
 {
     Hit hit = Hit();
     hit.actor = actor;
     hit.source = source;
-    hit.time = 0.25f;
+    hit.time = time;
     hit_data.push_back(hit);
 }
 

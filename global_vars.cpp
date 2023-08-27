@@ -1,9 +1,6 @@
 
 #include "global_vars.hpp"
 
-float spawn_timer = SPAWN_TIME_MAX;
-float spawn_time = SPAWN_TIME_MAX;
-
 void(*(gun_shoot[]))(Gun*) = {single_shoot, auto_shoot};
 
 void(*(bullet_step[]))(Bullet*) = {basic_bullet_step, slug_bullet_step, pierce_bullet_step};
@@ -26,11 +23,16 @@ std::vector<Texture> bullet_sprite_list;
 std::vector<Gun> gun_list;
 std::vector<Hit> hit_data;
 
-float pickup_timer;
 float delta = 0.0f;
 
 
+float spawn_timer = SPAWN_TIME_MAX;
+float spawn_time = SPAWN_TIME_MAX;
+
+float pickup_timer;
 float health_timer = HEALTH_TIME;
+
+float threat = 1.0f;
 
 int blood = 0;
 

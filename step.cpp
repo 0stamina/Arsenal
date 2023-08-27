@@ -76,8 +76,8 @@ void step()
         Actor enemy = Actor();
         init_actor(&enemy, pos, 2);
 
-        spawn_time = Clamp(spawn_time-SPAWN_TIME_DELTA, SPAWN_TIME_MIN, SPAWN_TIME_MAX);
-        spawn_timer = spawn_time;
+        //spawn_time = Clamp(spawn_time-SPAWN_TIME_DELTA, SPAWN_TIME_MIN, SPAWN_TIME_MAX);
+        spawn_timer = SPAWN_TIME_MAX/(threat+(blood/50.0f));
     }
     else
     {
@@ -124,6 +124,9 @@ void step()
     {
         health_timer -= delta;
     }
+
+    threat += delta/10.0f;
+    if (threat >= 10.0f) { threat = 10.0f; }
 
     return;
 }

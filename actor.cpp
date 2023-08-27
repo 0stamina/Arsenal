@@ -23,8 +23,10 @@ void destroy_actor(Actor* actor)
     }
     if(actor->type == 2)
     {
-        blood += actor->params[10];
-        PLAYER.health += 2;
+        if(actor->params[10] >= 1)
+        {
+            blood += (actor->params[10]/5)+1;
+        }
     }
 }
 
@@ -51,8 +53,8 @@ void push_actor(Actor* a1, Actor* a2, float dist)
 
         if (j != -1)
         {
-            add_hit(a2, (int)a1);
-            damage_actor(a2, 1);
+            add_hit(a2, (int)a1, 0.5f);
+            damage_actor(a2, 2*powf(blood, 0.1f));
         }
     }
     if(a1->type == 1 && a2->type == 2)
@@ -65,8 +67,8 @@ void push_actor(Actor* a1, Actor* a2, float dist)
 
         if (j != -1)
         {
-            add_hit(a1, (int)a2);
-            damage_actor(a1, 1);
+            add_hit(a1, (int)a2, 0.5f);
+            damage_actor(a1, 2*powf(blood, 0.1f));
         }
     }
     
@@ -74,7 +76,7 @@ void push_actor(Actor* a1, Actor* a2, float dist)
     {
         a2->exists = false;
         if(a1->type == 1){blood+=1.0f;}
-        else{a2->params[10] += 1.0f;}
+        else{a1->params[10] += 1.0f;}
     }
     if(a1->type == 3 && a2->type != 3)
     {

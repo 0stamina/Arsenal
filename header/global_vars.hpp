@@ -24,11 +24,13 @@
 #include "hook.hpp"
 
 
-#define TAU 6.283185307179586f
+#define TAU 6.283185307179586
 
 #define res_x 480
 #define res_y 360
 const int FACING_LUT[] = {0,1,2,3,4,3,2,1};
+
+extern float threat;
 
 #define SPAWN_TIME_MIN 1.0f
 #define SPAWN_TIME_MAX 5.0f
@@ -65,7 +67,7 @@ extern float gun_cooldown;
 
 
 
-#define CRATE_RADIUS 100.0f
+#define CRATE_RADIUS 70.0f
 #define CRATE_TIME_MAX 10.0f
 extern int num_crates;
 extern Vector2 crate_pos;
