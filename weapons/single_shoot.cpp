@@ -2,16 +2,18 @@
 
 void single_shoot(Gun* gun)
 {
-	if(gun_cooldown > 0.0f)
+	if(_g.gun_cooldown > 0.0f)
 	{
-		gun_cooldown -= delta;
+		_g.gun_cooldown -= delta;
 		return;
 	}
     if(IsMouseButtonPressed(0))
     {
+        _g.walk_timer = WALK_TIME_MAX;
         for(int i = 0; i < gun->bullet_amt; i++)
         {
             Bullet bullet = Bullet();
+            bullet.parent_idx = 0;
             bullet.damage = gun->damage;
             bullet.speed = gun->bullet_speed;
             bullet.size = gun->bullet_size;
@@ -20,7 +22,7 @@ void single_shoot(Gun* gun)
 
             Vector2 aim_dir = Vector2Normalize(cursor_pos);
 
-            Vector2 pos = Vector2Add(actor_list[0].position, Vector2Scale(aim_dir, 12.0f));
+            Vector2 pos = Vector2Add(PLAYER.position, Vector2Scale(aim_dir, 12.0f));
 
             float angle = acosf(Vector2DotProduct({1.0f, 0.0f}, aim_dir));
             float spread = 0.0f;
@@ -34,8 +36,9 @@ void single_shoot(Gun* gun)
             init_bullet(&bullet, angle, pos, gun->bullet_type);
 
             bullet_list.push_back(bullet);
-            gun_cooldown = gun->fire_rate;
-            gun_durability--;
+            _g.gun_cooldown = gun->fire_rate;
         }
+        if(_g.gun_durability > 0){_g.gun_durability--;}
+        else{damage_actor(&PLAYER, 1);}
     }
 }

@@ -1,88 +1,100 @@
 #include "global_vars.hpp"
 
 
-void init_actor(Actor* actor, Vector2 pos, int type)
+int init_actor(Vector2 pos, int type)
 {
-    actor->state = 0;
-    actor->type = type;
+    if(total_actors >= 500){return -1;}
+    if(total_actor_types[type] >= max_actor_types[type]){return -2;}
 
-    actor->position.x = pos.x;
-    actor->position.y = pos.y;
+    Actor &actor = actor_list[total_actors];
+    actor = Actor();
+    actor.state = 0;
+    actor.type = type;
 
-    actor->exists = true;
-    actor_init[actor->type](actor);
-    actor_list.push_back(*actor);
+    actor.position.x = pos.x;
+    actor.position.y = pos.y;
+
+    actor.exists = true;
+
+    actor_init[actor.type](&actor);
+    total_actors++;
+    total_actor_types[type]++;
 }
 
-void destroy_actor(Actor* actor)
+void destroy_actor(int idx)
 {
-    unassign_sprite(actor->sprite_idx);
-    if(actor->type == 3)
+    Actor actor = actor_list[idx];
+    unassign_sprite(actor.sprite_idx);
+    if(actor.type >= 2)
     {
-        active_fish--;
+        _g.point_stash += actor.params[23];
+        _g.total_kills++;
+        _g.multikills++;
+        _g.multikill_timer = MULTIKILL_TIME;
+
+        if(randf(0.f, 1.f) <= PICKUP_RATE){pickup_list.push_back(actor.position);}
     }
-    if(actor->type == 2)
+
+    for(int i = bullet_list.size()-1; i >= 0; i--)
     {
-        if(actor->params[10] >= 1)
+        Bullet& bullet = bullet_list[i];
+        if(bullet.parent_idx == idx)
         {
-            blood += (actor->params[10]/5)+1;
+            bullet.parent_idx = -1;
+        }
+    }
+
+    actor_list[idx] = actor_list[total_actors-1];
+    total_actors--;
+    total_actor_types[actor.type]--;
+
+
+    if(actor.type == 4)
+    {
+        for(int i = 0; i < 10; i++)
+        {
+            Vector2 offset = {randi(-5, 5), randi(-5, 5)};
+            init_actor(Vector2Add(actor.position, offset), 5);
         }
     }
 }
 
-void move_actor(Actor* actor, Vector2 dir)
+void move_actor(Actor* actor)
 {
-    actor->position = Vector2Add(actor->position, dir);
+    actor->position = Vector2Add(actor->position, actor->velocity);
+    actor->velocity = {0.0f,0.0f};    
 }
 
 void push_actor(Actor* a1, Actor* a2, float dist)
 {
-    Vector2 dir = Vector2Scale(Vector2Normalize(Vector2Subtract(a2->position, a1->position)), dist/2.0f);
+    if(a1->pushable && a2->pushable)
+    {
+        Vector2 dir = Vector2Scale(Vector2Normalize(Vector2Subtract(a2->position, a1->position)), -dist/2.0f);
+        a1->velocity = Vector2Add(a1->velocity, dir);
+    }
+    else if(a1->pushable)
+    {
+        Vector2 dir = Vector2Scale(Vector2Normalize(Vector2Subtract(a2->position, a1->position)), -dist);
+        a1->velocity = Vector2Add(a1->velocity, dir);
+    }
 
-    move_actor(a1, Vector2Scale(dir, -1.0f));
-    //player damage
-    
-        
-    if(a1->type == 2 && a2 == &actor_list[0])
+
+
+    //touch damage
+    if(a2 == &PLAYER && a1->touch_damage)
     {
         int j = 0;
-        for(j = 0; j < signed(hit_data.size()); j++)
+        for(j = 0; j < hit_data.size(); j++)
         {
             if(hit_data[j].source == (int)a1 && hit_data[j].actor == a2){j = -1;break;}
         }
 
         if (j != -1)
         {
-            add_hit(a2, (int)a1, 0.5f);
-            damage_actor(a2, 2*powf(blood, 0.1f));
+            add_hit(a2, (int)a1, 15);
+            damage_actor(a2, 1);
         }
-    }
-    if(a1->type == 1 && a2->type == 2)
-    {
-        int j = 0;
-        for(j = 0; j < signed(hit_data.size()); j++)
-        {
-            if(hit_data[j].source == (int)a2 && hit_data[j].actor == a1){j = -1;break;}
-        }
-
-        if (j != -1)
-        {
-            add_hit(a1, (int)a2, 0.5f);
-            damage_actor(a1, 2*powf(blood, 0.1f));
-        }
-    }
-    
-    if(a1->type != 3 && a2->type == 3)
-    {
-        a2->exists = false;
-        if(a1->type == 1){blood+=1.0f;}
-        else{a1->params[10] += 1.0f;}
-    }
-    if(a1->type == 3 && a2->type != 3)
-    {
-        a1->exists = false;
-        if(a2->type == 1){blood+=1.0f;}
-        else{a2->params[10] += 1.0f;}
+        
     }
 }
 
@@ -94,3 +106,65 @@ void damage_actor(Actor* actor, int damage)
         actor->exists = false;
     }
 }
+
+void collision(Actor* actor)
+{
+    for(int j = total_actors-1; j >= 0; j--)
+    {
+        if(actor_list[j].state < 0){continue;}
+        float dist = Vector2Distance(
+            Vector2Add(actor->position, actor->velocity), 
+            Vector2Add(actor_list[j].position, actor_list[j].velocity)
+            );
+        if(dist <= actor->size + actor_list[j].size)
+        {
+            push_actor(actor, &actor_list[j], ((actor->size+actor_list[j].size)-dist)/2.0f);
+        }
+    }
+}
+
+void wall_collision(Actor* actor)
+{
+    float dist_x = 0;
+    float dist_y = 0;
+
+    if(actor->position.x > map_siz/2.f-actor->size){dist_x = map_siz/2.f-actor->position.x-actor->size;}
+    if(actor->position.x < -map_siz/2.f+actor->size){dist_x = (-map_siz/2.f)-actor->position.x+actor->size;}
+    if(actor->position.y > map_siz/2.f-actor->size){dist_y = map_siz/2.f-actor->position.y-actor->size;}
+    if(actor->position.y < -map_siz/2.f+actor->size){dist_y = (-map_siz/2.f)-actor->position.y+actor->size;}
+
+    actor->velocity = Vector2Add(actor->velocity, {dist_x, dist_y});
+}
+
+void apply_status(Actor* actor, int status, int time)
+{
+    if(actor->curr_status > -1){return;}
+
+    actor->curr_status = status;
+    actor->status_timer = time;
+}
+
+void process_status(Actor* actor)
+{
+    switch(actor->curr_status)
+    {
+        case BURN_IDX:
+            if(actor->status_timer%10 == 0)
+            {
+                damage_actor(actor, 5);
+            }
+            break;
+    }
+}
+
+void draw_status(Actor* actor)
+{
+    actor->draw_col = WHITE;
+    switch(actor->curr_status)
+    {
+        case BURN_IDX:
+            actor->draw_col = ORANGE;
+            break;
+    }
+}
+

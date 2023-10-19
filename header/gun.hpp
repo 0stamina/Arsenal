@@ -13,7 +13,7 @@ struct Gun
     int bullet_amt = 1;
     int bullet_type = -1;
     float bullet_speed = 1.0f;
-    float bullet_size = 1.0f;
+    float bullet_size = 16.0f;
     float bullet_time = 1.0f;
     float fire_rate = 0.2f;
     float spread = 0.0f;

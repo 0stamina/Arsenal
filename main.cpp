@@ -1,10 +1,37 @@
 #include "global_vars.hpp"
 
+/*
+    TODO
+
+    <--UI-->
+    set up ui function
+    multikill indicator
+
+    <--MISC-->
+    particle system
+    hit effect
+    sound manager
+
+    <--ENEMIES-->
+    X enemy with projectile
+    X spawn enemies in groups
+
+    <--WEAPONS-->
+    X add limited pierce to rifle and shotgun
+    X make flamethrower apply burn status
+    make player slow down while shooting
+
+    <--CODE POLISH-->
+    put guns in an array instead of vector
+    compile sprite and sfx info into arrays
+    change all timers to frame based
+*/
+
+
 void init()
 {
     bg_texture = LoadTexture("resources/bg.png");
     arrow_texture = LoadTexture("resources/test_arrow.png");
-    spear_sprite_list.push_back(LoadTexture("resources/spear.png"));
 
     load_bullets();
     load_guns();
@@ -16,6 +43,7 @@ void init()
 
 int main(void)
 {
+    SetExitKey(KEY_NULL);
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(960, 720, "Arsenal");
     RenderTexture2D target = LoadRenderTexture(res_x, res_y);
@@ -47,10 +75,7 @@ int main(void)
 
 
         delta = GetFrameTime();
-        for(int n = 0; n < 1; n++)
-        {
-            step();
-        }
+        step();
         
         BeginTextureMode(target);
 
@@ -65,6 +90,8 @@ int main(void)
             BeginMode2D(world_camera);
 
                 draw();
+                int cost_w = MeasureText(std::to_string(_g.min_cost).c_str(), 10);
+                DrawText(std::to_string(_g.min_cost).c_str(), -(cost_w/2), -1, 10, BLACK);
 
             EndMode2D();
 
@@ -94,18 +121,36 @@ int main(void)
 
             //DrawText(std::to_string(spawn_time).c_str(), 10, 10, 10, WHITE);
             //DrawText(std::to_string(actor_list.size()).c_str(), 10, 25, 10, WHITE);
-            int score_width = MeasureText(std::to_string(score).c_str(), 35);
+            int score_width = MeasureText(std::to_string(_g.score).c_str(), 35);
             
-            DrawText(std::to_string(score).c_str(), res_x-score_width-30, 10, 40, BLACK);
+            DrawText(std::to_string(_g.score).c_str(), res_x-score_width-30, 10, 40, BLACK);
 
+            //health
+            int health_width = MeasureText(std::to_string(PLAYER.health).c_str(), 10);
             DrawRectangle(20, 20, PLAYER.health / 1.0f, 15, MAROON);
-            DrawText(std::to_string((int)blood).c_str(), 20, 40, 40, DARKBROWN);
+            DrawText(std::to_string(PLAYER.health).c_str(), 70-(health_width/2), 23, 10, BLACK);
 
-            DrawText(gun_list[curr_gun].name, 20, res_y-70, 40, BLACK);
-            if(curr_gun > 0)
+
+            //blood
+            DrawText(std::to_string((int)_g.blood).c_str(), 20, 40, 20, DARKBROWN);
+
+            if(_g.multikill_timer > 0)
             {
-                DrawRectangle(20, res_y-20, (float)gun_durability/(float)gun_list[curr_gun].durability*100.0f, 10, BLACK);
+                DrawRectangle(20, 65, 50*(_g.multikill_timer/MULTIKILL_TIME), 10, DARKBROWN);
+                DrawText("+", 20, 80, 20, DARKBROWN);
+                DrawText(std::to_string((int)(_g.point_stash*(1+_g.multikills/15.f))).c_str(), 32, 80, 20, DARKBROWN);
             }
+
+            //gun and durability
+            DrawText(gun_list[_g.curr_gun].name, 20, res_y-70, 20, BLACK);
+            
+            Color col = BLACK;
+            float percent = (float)_g.gun_durability/(float)gun_list[_g.curr_gun].durability*100.0f;
+
+            if(percent > 100.0f){col = GOLD;percent = 100.0f;}
+            if(percent <= 20.0f){col = RED;}
+
+            DrawRectangle(20, res_y-20, percent, 10, col);
 
             if(!PLAYER.exists){DrawText("Press R to Restart", res_x/2-(MeasureText("Press R to Restart", 20))/2, (res_y/2)-30, 20, BLACK);}
 
@@ -133,61 +178,62 @@ void load_bullets()
 
 void load_guns()
 {
-    // Gun basic_melee = Gun();
-    // basic_melee.damage = 5;
-    // basic_melee.bullet_type = 0;
-    // basic_melee.bullet_time = 0.5f;
-    // basic_melee.bullet_speed = 3.0f;
-    // basic_melee.fire_rate = 0.5f;
-    // basic_melee.spread = 0.0f;
-    // gun_list.push_back(basic_melee);
-
-    Gun pistol = Gun();
-    pistol.name = "Pistol";
-    pistol.damage = 34;
-    pistol.bullet_type = 0;
-    pistol.bullet_speed = 6.0f;
-    pistol.fire_rate = 0.1f;
-    pistol.spread = 0.05f;
-    pistol.durability = 0;
-    gun_list.push_back(pistol);
-
     Gun rifle = Gun();
     rifle.name = "Rifle";
     rifle.shoot_func = 1;
-    rifle.damage = 34;
+    rifle.damage = 55;
     rifle.bullet_type = 0;
+    rifle.bullet_time = 300;
     rifle.bullet_speed = 6.0f;
-    rifle.fire_rate = 0.05f;
-    rifle.spread = 0.075f;
+    rifle.fire_rate = 0.08f;
+    rifle.spread = 0.1f;
     rifle.durability = 100;
     gun_list.push_back(rifle);
+    tier_1_guns.push_back(rifle);
+    gun_sprite_list.push_back(LoadTexture("resources/gun.png"));
     
-
     Gun shotgun = Gun();
     shotgun.name = "Shotgun";
-    shotgun.damage = 52;
-    shotgun.bullet_time = 0.5;
-    shotgun.bullet_amt = 5;
+    shotgun.shoot_func = 0;
+    shotgun.damage = 65;
     shotgun.bullet_type = 1;
+    shotgun.bullet_time = 35;
+    shotgun.bullet_amt = 5;
     shotgun.bullet_speed = 6.0f;
-    shotgun.fire_rate = 0.4f;
+    shotgun.fire_rate = 0.35f;
     shotgun.spread = 0.3f;
-    shotgun.durability = 80;
+    shotgun.durability = 40;
     gun_list.push_back(shotgun);
+    tier_1_guns.push_back(shotgun);
+
+    Gun bow = Gun();
+    bow.name = "Charge Gun";
+    bow.shoot_func = 2;
+    bow.damage = 345;
+    bow.bullet_type = 4;
+    bow.bullet_time = 70;
+    bow.bullet_size = 25.0f;
+    bow.bullet_speed = 15.0f;
+    bow.fire_rate = 0.2f;
+    bow.spread = 0.0f;
+    bow.durability = 20;
+    gun_list.push_back(bow);
+    tier_1_guns.push_back(bow);
     
     Gun flamethrower = Gun();
     flamethrower.name = "Flamethrower";
-    flamethrower.damage = 5;
     flamethrower.shoot_func = 1;
-    flamethrower.bullet_time = 1.0f;
+    flamethrower.damage = 2;
+    flamethrower.bullet_type = 3;
+    flamethrower.bullet_size = 8.0f;
+    flamethrower.bullet_time = 100;
     flamethrower.bullet_amt = 5;
-    flamethrower.bullet_type = 2;
-    flamethrower.bullet_speed = 3.0f;
+    flamethrower.bullet_speed = 4.5f;
     flamethrower.fire_rate = 0.05f;
-    flamethrower.spread = 0.3f;
-    flamethrower.durability = 400;
+    flamethrower.spread = 0.2f;
+    flamethrower.durability = 80;
     gun_list.push_back(flamethrower);
+    tier_1_guns.push_back(flamethrower);
     
 }
 
@@ -196,69 +242,55 @@ void restart()
     for(int i = hit_data.size()-1; i >= 0; i--)
     {
         hit_data.erase(hit_data.begin()+i);
-        continue;
     }
     for(int i = sprite_list.size()-1; i >= 0; i--)
     {
         UnloadTexture(sprite_list[i].texture);
         sprite_list.erase(sprite_list.begin()+i);
-        continue;
     }
-    for(int i = actor_list.size()-1; i >= 0; i--)
+    for(int i = 0; i < 500; i++)
     {
-        actor_list.erase(actor_list.begin()+i);
-        continue;
+        actor_list[i] = Actor();
     }
     for(int i = bullet_list.size()-1; i >= 0; i--)
     {
         bullet_list.erase(bullet_list.begin()+i);
-        continue;
     }
-    for (int i = bullet_list.size() - 1; i >= 0; i--)
+    for(int i = pickup_list.size()-1; i >= 0; i--)
     {
-        bullet_list.erase(bullet_list.begin() + i);
-        continue;
-    }
-    for (int i = hook_list.size() - 1; i >= 0; i--)
-    {
-        hook_list.erase(hook_list.begin() + i);
+        pickup_list.erase(pickup_list.begin()+i);
     }
     srand(time(0));
 
-    spawn_timer = SPAWN_TIME_MAX;
-    spawn_time = SPAWN_TIME_MAX;
-    pickup_timer = PICKUP_TIME;
+
+    
+    total_actors = 0;
+    std::fill(total_actor_types, total_actor_types+50, 0);
+    spawn_timer = SPAWN_TIME_MAX*2.0f;
     health_timer = HEALTH_TIME;
+    basic_enemy_timer = BASIC_ENEMY_MAX;
+    basic_shooter_timer = BASIC_SHOOTER_MAX;
 
     world_camera = { 0 };
     world_camera.zoom = 1.0f;
     world_camera.offset = Vector2Scale({(float)res_x, (float)res_y}, 1.0f/(2.0f));
+    init_actor({0.0f, 0.0f}, 1);
 
-    Actor player = Actor();
-    init_actor(&player, {0.0f, 0.0f}, 1);
-    //PLAYER.health = 1;
-
-    score = 0;
-    for(int i = 0; i < 50; i++)
-    {
-        new_hook();
-    }
-
-    for(int i = 0; i < 20; i++)
-    {
-        float angle = randf(0.0f, TAU);
-        float dist = randf(100.0f, 300.0f);
-
-        Actor fish = Actor();
-        init_actor(&fish, {cosf(angle)*dist, -sinf(angle)*dist}, 3);
-    }
-
-    blood = 0;
-    active_fish = 0;
-
-    curr_gun = 0;
-    gun_cooldown = 0.0f;
+    _g = GameplayVars();
     swap_gun();
 
     cursor_pos = {0.0f, 0.0f};
+
+    
+    for(int i = 0; i < 10; i++)
+    {
+        Vector2 p = {0.0f, 0.0f};
+        do
+        {
+            p.x = randf(map_rect.x+100, -map_rect.x-100);
+            p.y = randf(map_rect.y+100, -map_rect.y-100);
+        }
+        while(Vector2Length(p) <= 300.0f);
+        init_actor(p, 2);
+    }
 }

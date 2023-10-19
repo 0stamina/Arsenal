@@ -1,30 +1,42 @@
 
 #include "global_vars.hpp"
 
-void(*(gun_shoot[]))(Gun*) = {single_shoot, auto_shoot};
+void(*(gun_shoot[]))(Gun*) = {single_shoot, auto_shoot, charge_shoot};
 
 void(*(bullet_step[]))(Bullet*) = {basic_bullet_step, slug_bullet_step, pierce_bullet_step};
-void(*(bullet_draw[]))(Bullet*) = {basic_bullet_draw, basic_bullet_draw, pierce_bullet_draw};
+void(*(bullet_draw[]))(Bullet*) = {basic_bullet_draw, melee_draw, fireball_draw};
 
-void(*(actor_init[]))(Actor*) = {empty_actor_init, player_init, basic_enemy_init, fish_init};
-void(*(actor_step[]))(Actor*) = {empty_actor_step, player_step, basic_enemy_step, fish_step};
-void(*(actor_swap[]))(Actor*, int) = {empty_actor_swap, player_swap, empty_actor_swap, empty_actor_swap};
-void(*(actor_draw[]))(Actor*) = {empty_actor_draw, player_draw, empty_actor_draw, fish_draw};
+void(*(actor_init[]))(Actor*) = {empty_actor_init, player_init, basic_enemy_init, basic_shooter_init, wall_slime_init, basic_enemy_init};
+void(*(actor_step[]))(Actor*) = {empty_actor_step, player_step, basic_enemy_step, basic_shooter_step, wall_slime_step, basic_enemy_step};
+void(*(actor_draw[]))(Actor*) = {empty_actor_draw, player_draw, basic_enemy_draw, basic_shooter_draw, wall_slime_draw, basic_enemy_draw};
 
 Vector2 cursor_pos;
 Camera2D world_camera;
 Texture bg_texture;
 Texture arrow_texture;
-std::vector<Actor> actor_list;
-std::vector<Actor> pickup_list;
+Actor actor_list[500];
+int total_actors = 0;
+int total_actor_types[50];
 std::vector<Sprite> sprite_list;
 std::vector<Bullet> bullet_list;
 std::vector<Texture> bullet_sprite_list;
+std::vector<Texture> gun_sprite_list;
+std::vector<Vector2> pickup_list;
 std::vector<Gun> gun_list;
 std::vector<Hit> hit_data;
 
+std::vector<Gun> tier_1_guns;
+std::vector<Gun> tier_2_guns;
+std::vector<Gun> tier_3_guns;
+std::vector<Gun> tier_4_guns;
+
+
 float delta = 0.0f;
 
+
+int basic_enemy_timer = BASIC_ENEMY_MAX;
+int basic_shooter_timer = BASIC_SHOOTER_MAX*4;
+int random_spawn_timer = RANDOM_SPAWN_MAX*3;
 
 float spawn_timer = SPAWN_TIME_MAX;
 float spawn_time = SPAWN_TIME_MAX;
@@ -32,27 +44,4 @@ float spawn_time = SPAWN_TIME_MAX;
 float pickup_timer;
 float health_timer = HEALTH_TIME;
 
-float threat = 1.0f;
-
-int blood = 0;
-
-int curr_gun = 0;
-float gun_cooldown;
-int gun_durability = 0;
-
-int active_fish = 0;
-
-int score;
-std::vector<Hook> hook_list;
-
-std::vector<Texture> spear_sprite_list;
-Vector2 spear_head;
-Vector2 spear_dir;
-int speared_fish;
-int spear_state; 
-float spear_dist;
-
-
-int num_crates = 0;
-Vector2 crate_pos;
-float crate_time;
+GameplayVars _g = GameplayVars();

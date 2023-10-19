@@ -7,11 +7,11 @@ struct Hit
 {
     Actor* actor;
     int source;
-    float time;
+    int time;
 };
 
 
-void add_hit(Actor*, int, float);
+void add_hit(Actor*, int, int);
 void proccess_hits();
 
 #endif

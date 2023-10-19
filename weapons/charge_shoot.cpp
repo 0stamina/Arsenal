@@ -1,22 +1,39 @@
 #include "global_vars.hpp"
-
-void auto_shoot(Gun* gun)
+int max_charge = 100;
+float coef = 1.25f;
+void charge_shoot(Gun* gun)
 {
-	if(_g.gun_cooldown > 0.0f)
+	
+    
+    if(IsMouseButtonDown(0))
+    {
+        _g.walk_timer = WALK_TIME_MAX;
+        _g.gun_charge++;
+        if(_g.gun_charge > max_charge){_g.gun_charge = max_charge;}
+    }
+    if(_g.gun_cooldown > 0.0f)
 	{
 		_g.gun_cooldown -= delta;
+        if(IsMouseButtonReleased(0))
+        {
+            _g.gun_charge = 0;
+        }
 		return;
 	}
-    if(IsMouseButtonDown(0))
+    if(IsMouseButtonReleased(0))
     {
         _g.walk_timer = WALK_TIME_MAX;
         for(int i = 0; i < gun->bullet_amt; i++)
         {
             Bullet bullet = Bullet();
+
+            float charge_percent = _g.gun_charge/(float)max_charge;
+            float v = (pow(charge_percent, 0.5)+coef-1.f)/coef;
+
             bullet.parent_idx = 0;
-            bullet.damage = gun->damage;
-            bullet.speed = gun->bullet_speed;
-            bullet.size = gun->bullet_size;
+            bullet.damage = gun->damage*v;
+            bullet.speed = gun->bullet_speed*v;
+            bullet.size = gun->bullet_size*Clamp(v, 0.5f, v);
             bullet.time_limit = gun->bullet_time;
             if(i > 0){bullet.speed+=randf(-1, 1);}
 
@@ -40,5 +57,7 @@ void auto_shoot(Gun* gun)
         }
         if(_g.gun_durability > 0){_g.gun_durability--;}
         else{damage_actor(&PLAYER, 1);}
+
+        _g.gun_charge = 0.f;
     }
 }

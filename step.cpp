@@ -9,12 +9,11 @@ void step()
     if(!PLAYER.exists){return;}
 
     
-    if(IsKeyPressed(KEY_RIGHT)){curr_gun++; swap_gun();}
-    if(IsKeyPressed(KEY_LEFT)){curr_gun--; swap_gun();}
-
-    if(curr_gun < 0){curr_gun = gun_list.size()-1;}
-    if(curr_gun >= gun_list.size()){curr_gun = 0;}
+    if(IsKeyPressed(KEY_RIGHT)){_g.curr_gun++; swap_gun();}
+    if(IsKeyPressed(KEY_LEFT)){_g.curr_gun--; swap_gun();}
     
+    if(_g.walk_timer > 0.f){_g.walk_timer -= delta;}
+
     //run projectile code
     for(int i = bullet_list.size()-1; i >= 0; i--)
     {
@@ -25,11 +24,11 @@ void step()
             continue;
         }
         bullet.position = Vector2Add(bullet.position, Vector2Scale({cosf(bullet.rotation), -sinf(bullet.rotation)}, bullet.speed));
-        bullet_step[bullet.type](&bullet);
+        bullet_step[bullet.logic](&bullet);
     }
 
     //run actor code
-    for(int i = actor_list.size()-1; i >= 0; i--)
+    for(int i = total_actors-1; i >= 0; i--)
     {
 
         Actor& actor = actor_list[i];
@@ -37,17 +36,31 @@ void step()
         {
             if(i)
             {
-                destroy_actor(&actor_list[i]);
-                actor_list.erase(actor_list.begin()+i);
+                destroy_actor(i);
             }
             continue;
         }
+        
+        process_status(&actor);
 
         actor_step[actor.type](&actor);
-        actor.move_dir = Vector2Normalize(actor.move_dir);
+        actor.state_timer++;
 
-        move_actor(&actor, Vector2Scale(actor.move_dir, actor.speed));
+        if(actor.state < 0){continue;}
+        actor.damage_timer--;
+
+        if(actor.curr_status != -1)
+        {
+            actor.status_timer--;
+            if(actor.status_timer <= 0)
+            {
+                actor.curr_status = -1;
+            }
+        }
+
         if(i){collision(&actor);}
+        wall_collision(&actor);
+        move_actor(&actor);
     }
 
 
@@ -62,85 +75,34 @@ void step()
     world_camera.target = Vector2Add(world_camera.target , Vector2Scale(cursor_pos, 0.2f));
 
     //spawn new enemy
-    if(spawn_timer <= 0.0f)
-    {
-        float angle = 0.0f;
-        if(Vector2Length(actor_list[0].move_dir) < 0.5f){angle = randf(0.0f, TAU);}
-        else{angle = acosf(Vector2DotProduct({1.0f, 0.0f}, actor_list[0].move_dir))+randf(0.0f, 0.6f)-0.3f;}
-        float dist = randf(400.0f, 450.0f);
-        Vector2 offset = {cosf(angle)*dist, sinf(angle)*dist};
-        if(actor_list[0].move_dir.y < 0.0f){offset.y*=-1;}
-
-        Vector2 pos = Vector2Add(offset, actor_list[0].position);
-
-        Actor enemy = Actor();
-        init_actor(&enemy, pos, 2);
-
-        //spawn_time = Clamp(spawn_time-SPAWN_TIME_DELTA, SPAWN_TIME_MIN, SPAWN_TIME_MAX);
-        spawn_timer = SPAWN_TIME_MAX/(threat+(blood/50.0f));
-    }
-    else
-    {
-        spawn_timer -= delta;
-    }
-    
-    if(pickup_timer <= 0.0f && active_fish < 50)
-    {
-        float angle = randf(0.0f, TAU);
-        float dist = randf(400.0f, 500.0f);
-        Vector2 offset = {cosf(angle)*dist, -sinf(angle)*dist};
-
-        Vector2 pos = Vector2Add(offset, actor_list[0].position);
-
-        Actor fish = Actor();
-        init_actor(&fish, pos, 3);
-
-        pickup_timer = PICKUP_TIME;
-    }
-    else
-    {
-        pickup_timer -= delta;
-    }
+    spawn_enemies();
 
     //box unlock
     fill_hooks();
 
 
     //shoot
-    gun_shoot[gun_list[curr_gun].shoot_func](&gun_list[curr_gun]);
-    if(gun_durability <= 0)
-    {
-        curr_gun = 0;
-    }
-    process_spear();
+    gun_shoot[gun_list[_g.curr_gun].shoot_func](&gun_list[_g.curr_gun]);
+
+    //process_spear();
     proccess_hits();
 
-    if(health_timer <= 0.0f)
-    {
-        damage_actor(&PLAYER, 2);
-        health_timer = HEALTH_TIME;
-    }
-    else
-    {
-        health_timer -= delta;
-    }
+    _g.threat += delta;
+    if (_g.threat > 10.0f) { _g.threat = 10.0f; }
 
-    threat += delta/10.0f;
-    if (threat >= 10.0f) { threat = 10.0f; }
+    if(_g.blood > _g.highest_blood){_g.highest_blood = _g.blood;}
+
+
+    //multikill
+    if(_g.multikill_timer <= 0.f)
+    {
+        _g.blood += _g.point_stash*(1+_g.multikills/15.f);
+        _g.multikills = 0;
+        _g.point_stash = 0;
+    }
+    else{_g.multikill_timer -= delta;}
 
     return;
-}
-
-void collision(Actor* actor)
-{
-    for(int j = actor_list.size()-1; j >= 0; j--)
-    {
-        float dist = Vector2Distance(actor->position, actor_list[j].position);
-        if(dist <= actor->size + actor_list[j].size)
-        {
-            push_actor(actor, &actor_list[j], (actor->size+actor_list[j].size)-dist);
-        }
-    }
 }
 
 void cursor_set()
@@ -170,7 +132,9 @@ void cursor_set()
 
 void swap_gun()
 {
-    if(curr_gun < 0){curr_gun = gun_list.size()-1;}
-    if(curr_gun >= gun_list.size()){curr_gun = 0;}
-    gun_durability = gun_list[curr_gun].durability;
+    if(_g.curr_gun < 0){_g.curr_gun = 0;}
+    if(_g.curr_gun >= gun_list.size()){_g.curr_gun = gun_list.size()-1;}
+
+    _g.gun_durability = gun_list[_g.curr_gun].durability;
+    if(_g.swap_bonus){_g.gun_durability *= 1.5;}
 }

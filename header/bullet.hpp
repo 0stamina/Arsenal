@@ -7,21 +7,22 @@
 struct Bullet
 {
     bool exists = false;
-    int type = -1;
+    int logic = -1;
+    int draw = -1;
     int spr_idx = 0;
-    float size = 1.0f;
+    float size = 10.0f;
     int damage = 1;
 
-    float time_limit = 1.0f;
-    float time = 0.0f;
+    int time_limit = 100;
+    int time = 0;
 
     float speed = 5.0f;
     float accel = 0.0f;
     float rotation = 0;
     Vector2 position = { 0.0f, 0.0f };
-    Actor* parent = 0;
+    int parent_idx = 0;
 
-    int params[25] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    int params[8] = {};
 };
 
 void init_bullet(Bullet*, float, Vector2, int);

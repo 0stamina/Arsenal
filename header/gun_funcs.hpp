@@ -6,6 +6,7 @@
 
 void single_shoot(Gun*);
 void auto_shoot(Gun*);
-extern void(*(gun_shoot[2]))(Gun*);
+void charge_shoot(Gun*);
+extern void(*(gun_shoot[]))(Gun*);
 
 #endif

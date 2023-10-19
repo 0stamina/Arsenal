@@ -1,121 +1,92 @@
 
-#include "bullet_funcs.hpp"
-#include "bullet.hpp"
-#include "actor_funcs.hpp"
-#include "actor.hpp"
-#include "random.hpp"
 #include "global_vars.hpp"
+namespace basic_enemy
+{
 
+    const int SPAWN = -1;
+    const int FOLLOW = 1;
+    const int AIM = 2;
+    const int SHOOT = 3;
+    const int RELOAD = 4;
+
+    float max_size = 10.f;
+
+    void follow_player(Actor* actor);
+    void spawning(Actor* actor);
+}
+
+using namespace basic_enemy;
 
 void basic_enemy_init(Actor* actor)
 {
+    actor->sprite_idx = assign_sprite("resources/enemyguy.png");
     actor->params[4] = -1;
-    actor->size = 10.0f;
-    actor->speed = 2.15f;
+    actor->size = 1.0f;
+    actor->max_speed = 1.0f;
+    actor->cur_speed = actor->max_speed;
+
+    actor->health = 100;
+    actor->health *= 1+0.5*(BLOOD_THREAT/50);
+
+    actor->blood_value = 1;
+
+    actor->state = SPAWN;
+    actor->state_timer = randi(0,20);
+
+    actor->touch_damage = true;
 }
 
 void basic_enemy_step(Actor* actor)
 {
-    float max_dist = 100.0f * powf((threat*((float)blood+1.0f))+1.0f, 0.2f);
-    if(Vector2Distance(PLAYER.position, actor->position) >= 550)
-    {
-        Vector2 dir = Vector2Normalize(Vector2Subtract(PLAYER.position, actor->position));
-        actor->position = Vector2Add(PLAYER.position, Vector2Scale(dir, 400));
-    }
-
-    float accel = *(float*)&actor->params[2];
-
-    float dif = *(float*)&actor->params[1]-*(float*)&actor->params[0];
-
-    dif = fmod(dif+(TAU/2.0),TAU)-TAU/2.0;
-    if(abs(dif) > TAU/2.0){dif = TAU+dif;}
-
     switch(actor->state)
     {
-
-        //wander
-        case 0:
-        {
-
-            if(dif > 0.0f){accel+=0.001f;}
-            else{accel-=0.001f;}
-
-            if(accel > 0.02f){accel = 0.02f;}
-            if(accel < -0.02f){accel = -0.02f;}
-
-            actor->params[2] = *(int*)&accel;
-
-            if(Vector2Distance(PLAYER.position, actor->position) < max_dist)
-            {
-                actor->params[4] = (int)&PLAYER;
-                actor->state = 1;
-                break;
-            }
-
-            for(int i = actor_list.size()-1; i >= 1; i--)
-            {
-                if(actor_list[i].type != 2)
-                {
-                    if(Vector2Distance(actor_list[i].position, actor->position) < max_dist/2.0f)
-                    {
-                        actor->params[4] = (int)&actor_list[i];
-                        actor->state = 1;
-                        break;
-                    }
-                }
-            }
-
-            if (abs(accel) > abs(dif))
-            {
-                float f = randf(0, TAU);
-                actor->params[1] = *(int*)&f;
-            }
+        case SPAWN:
+            spawning(actor);
             break;
-        }
-        //chase
-        case 1:
-        {
-            if(dif > 0.0f){accel+=0.005f;}
-            else{accel-=0.005f;}
-
-            if(accel > 0.1f){accel = 0.1f;}
-            if(accel < -0.1f){accel = -0.1f;}
-
-            actor->params[2] = *(int*)&accel;
-
-            if(actor->params[4] != (int)&PLAYER && Vector2Distance(PLAYER.position, actor->position) < max_dist)
-            {
-                actor->params[4] = (int)&PLAYER;
-                actor->state = 1;
-                break;
-            }
-            if(!((Actor*)actor->params[4])->exists || Vector2Distance(((Actor*)actor->params[4])->position, actor->position) > max_dist*2.0f)
-            {
-                actor->params[4] = -1;
-                actor->state = 0;
-                break;
-            }
-
-            if (abs(accel) > abs(dif))
-            {
-                actor->params[0] = actor->params[1];
-                actor->params[2] = 0;
-            }
-            
-            Vector2 dir = Vector2Normalize(Vector2Subtract(((Actor*)actor->params[4])->position, actor->position));
-            float angle = atan2f(-dir.y,dir.x);
-            if(angle < 0){angle = TAU+angle;}
-            if(angle > TAU){angle = TAU-angle;}
-            actor->params[1] = *(int*)&angle;
-
+        case FOLLOW:
+            follow_player(actor);
             break;
-        }
     }
+}
 
-    float a = accel+*(float*)&actor->params[0];
-    if(a < 0){a = TAU+a;}
-    if(a > TAU){a = TAU-a;}
-    actor->params[0] = *(int*)&a;
-    actor->move_dir = {cosf(*(float*)&actor->params[0]), -sinf(*(float*)&actor->params[0])};
-    
+void basic_enemy_draw(Actor* actor)
+{
+    Texture texture = sprite_list[actor->sprite_idx].texture;
+    Rectangle source = {0.0f, 0.0f, texture.width/2, (int)(texture.height*(actor->size/max_size))};
+
+    draw_status(actor);
+
+    if(actor->damage_timer > 0){actor->draw_col = RED;}
+
+    Rectangle dest = source;
+    dest.width = 32;
+    dest.height = 24*(actor->size/max_size);
+    dest.x = actor->position.x;
+    dest.y = actor->position.y;
+
+    //if(actor->move_dir.y < 0){source.x = texture.width/2;}
+    DrawTexturePro(texture, source, dest, {dest.width/2.f, dest.height*0.75f}, 0, actor->draw_col);
+}
+
+void basic_enemy::spawning(Actor* actor)
+{
+    if(actor->state_timer < 20){return;}
+    actor->size += 0.25f;
+    if(actor->size >= max_size)
+    {
+        actor->size = max_size;
+        actor->state = FOLLOW;
+        actor->state_timer = 0;
+    }
+}
+
+void basic_enemy::follow_player(Actor* actor)
+{
+    actor->move_dir = Vector2Normalize(Vector2Subtract(PLAYER.position, actor->position));
+
+    actor->cur_speed += 0.2f;
+    actor->cur_speed = Clamp(actor->cur_speed, 0, actor->max_speed);
+
+    actor->velocity = Vector2Add(actor->velocity,Vector2Scale(actor->move_dir, actor->cur_speed));
+    if(actor->cur_speed > Vector2Length(actor->velocity)){actor->cur_speed = Vector2Length(actor->velocity);}
 }

@@ -1,42 +1,35 @@
 #include "global_vars.hpp"
 
 void pierce_bullet_step(Bullet* bullet)
-{
-    
-    for(unsigned int i = 1; i < actor_list.size(); i++)
+{   
+    for(unsigned int i = 0; i < total_actors; i++)
     {
-        if(actor_list[i].type == 3){continue;}
-        int j = 0;
-        for(j = 0; j < hit_data.size(); j++)
-        {
-            if(hit_data[j].source == (int)bullet && hit_data[j].actor == &actor_list[i]){j = -1;break;}
-        }
-        if (j == -1) { continue; };
+        if(!actor_list[i].exists){continue;}
+        if(actor_list[i].state <= 0){continue;}
+        if(i == 0 && bullet->parent_idx == 0){continue;}
+        if(i != 0 && bullet->parent_idx != 0){continue;}
 
-        if(Vector2Distance(actor_list[i].position, bullet->position) <= actor_list[i].size+2.0f)
+        if(Vector2Distance(actor_list[i].position, bullet->position) <= actor_list[i].size+bullet->size)
         {
-            add_hit(&actor_list[i], (int)bullet, 0.1f);
+            int j = 0;
+            for(j = 0; j < hit_data.size(); j++)
+            {
+                if(hit_data[j].source == (int)bullet && hit_data[j].actor == &actor_list[i])
+                {
+                    j = -1;
+                    break;
+                }
+            }
+            if (j == -1) { continue; }
+            add_hit(&actor_list[i], (int)bullet, 30);
             damage_actor(&actor_list[i], bullet->damage);
+            apply_status(&actor_list[i], bullet->params[0], bullet->params[1]);
         }
     }
 
-    bullet->time += delta;
+    bullet->time++;
     if(bullet->time >= bullet->time_limit)
     {
         bullet->exists = false;
     }
-}
-
-void pierce_bullet_draw(Bullet* bullet)
-{
-    // Texture texture = bullet_sprite_list[bullet->spr_idx];
-    // Rectangle source = {0.0f, 0.0f, (float)texture.width, (float)texture.height};
-
-    // Rectangle dest = source;
-    // dest.x = bullet->position.x;
-    // dest.y = bullet->position.y;
-    // dest.width *= bullet->size;
-    // dest.height *= bullet->size;
-    // DrawTexturePro(texture, source, dest, {dest.width/2.0f, dest.height/2.0f}, -bullet->rotation*(360.0f/TAU), WHITE);
-    DrawCircleV(bullet->position, 7.0f*bullet->size, ORANGE);
 }

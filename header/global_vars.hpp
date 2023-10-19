@@ -21,82 +21,86 @@
 #include "actor_funcs.hpp"
 #include "actor.hpp"
 #include "hit.hpp"
+#include "gameplay_vars.hpp"
 #include "hook.hpp"
 
+#define blood_value params[23]
+
+
+#define WALK_TIME_MAX 0.2f
+
+#define MULTIKILL_TIME 1.f
 
 #define TAU 6.283185307179586
+#define PICKUP_SIZE 5.f
+#define PICKUP_RATE 0.02f
 
-#define res_x 480
-#define res_y 360
+#define res_x 640
+#define res_y 480
+
+const int max_actor_types[] = {0, 1, 200, 100, 20, 50};
 const int FACING_LUT[] = {0,1,2,3,4,3,2,1};
+const float map_siz = 1200.0f;
+const Rectangle map_rect = {-map_siz/2.0f, -map_siz/2.0f, map_siz, map_siz};
 
-extern float threat;
+#define BLOOD_THREAT Clamp(((float)_g.total_kills)/10.0f, 0.0f, 50.0f)
 
-#define SPAWN_TIME_MIN 1.0f
-#define SPAWN_TIME_MAX 5.0f
-#define SPAWN_TIME_DELTA 0.5f
+#define SPAWN_TIME_MAX 0.7f
 extern float spawn_time;
 extern float spawn_timer;
-#define PICKUP_TIME 0.5f
-extern float pickup_timer;
+
+#define BASIC_ENEMY_MAX 127
+extern int basic_enemy_timer;
+#define BASIC_SHOOTER_MAX 307
+extern int basic_shooter_timer;
+#define RANDOM_SPAWN_MAX 1823
+extern int random_spawn_timer;
 
 #define HEALTH_TIME 1.0f;
 extern float health_timer;
+
+#define CRATE_RADIUS 50.0f
+#define CRATE_TIME_MAX 10.0f
+
+#define PLAYER actor_list[0]
 
 extern Vector2 cursor_pos;
 extern Camera2D world_camera;
 extern Texture bg_texture;
 extern Texture arrow_texture;
-extern std::vector<Actor> actor_list;
+extern Actor actor_list[];
+extern int total_actors;
+extern int total_actor_types[];
 extern std::vector<Sprite> sprite_list;
 extern std::vector<Bullet> bullet_list;
 extern std::vector<Texture> bullet_sprite_list;
+extern std::vector<Texture> gun_sprite_list;
+extern std::vector<Vector2> pickup_list;
 extern std::vector<Gun> gun_list;
 extern std::vector<Hit> hit_data;
+
+extern std::vector<Gun> tier_1_guns;
+extern std::vector<Gun> tier_2_guns;
+extern std::vector<Gun> tier_3_guns;
+extern std::vector<Gun> tier_4_guns;
+
+const std::vector<Gun> gun_tiers[4] = {tier_1_guns, tier_2_guns, tier_3_guns, tier_4_guns};
+
+extern unsigned int animation_timer;
 extern float delta;
 
-#define PLAYER actor_list[0]
-
-extern int active_fish;
-
-extern int blood;
-
-extern int curr_gun;
-extern int gun_durability;
-extern float gun_cooldown;
-
-
-
-#define CRATE_RADIUS 70.0f
-#define CRATE_TIME_MAX 10.0f
-extern int num_crates;
-extern Vector2 crate_pos;
-extern float crate_time;
-
-extern int score;
-extern std::vector<Hook> hook_list;
-
-extern std::vector<Texture> spear_sprite_list;
-extern Vector2 spear_head;
-extern Vector2 spear_dir;
-extern int speared_fish;
-extern int spear_state; 
-extern float spear_dist;
+extern GameplayVars _g;
 
 void restart();
 void init();
 void step();
 void draw();
 void draw_line_round(float, float, float, float, float, Color);
-void collision(Actor*);
 void cursor_set();
 void load_bullets();
 void load_guns();
 void new_crate();
+void spawn_enemies();
 void swap_gun();
-
-void process_spear();
-void shoot_spear();
-void retract_spear();
 
 #endif
