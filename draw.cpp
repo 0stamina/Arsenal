@@ -16,21 +16,46 @@ void draw()
     {
         DrawCircleV(pickup_list[i], PICKUP_SIZE, RED);
     }
-    for(int i = total_actors-1; i >= 1; i--)
+
+    
+    std::vector<int> actor_order;
+    actor_order.push_back(0);
+    for(int i = 1; i < total_actors; i++)
     {
+        for(int j = 0; j < actor_order.size(); j++)
+        {
+            int o = actor_order[j];
+            if(actor_list[i].position.y < actor_list[o].position.y && actor_list[i].state_timer >= 0)
+            {
+                actor_order.insert(actor_order.begin()+j, i);
+                break;
+            }
+            if(j == actor_order.size()-1)
+            {
+                actor_order.push_back(i);
+                break;
+            }
+        }
+    }
+
+    for(int j = 0; j < actor_order.size(); j++)
+    {
+        int i = actor_order[j];
         Actor& actor = actor_list[i];
         if(!actor.exists){continue;}
         actor_draw[actor.type](&actor);
         
     }
+    actor_order.clear();
+
     //draw projectiles
     for(unsigned int i = 0; i < bullet_list.size(); i++)
     {
         bullet_draw[bullet_list[i].draw](&bullet_list[i]);
     }
 
-    Actor& actor = actor_list[0];
-    if(!actor.exists){return;}
-    actor_draw[actor.type](&actor);
+    // Actor& actor = actor_list[0];
+    // if(!actor.exists){return;}
+    // actor_draw[actor.type](&actor);
     return;
 }

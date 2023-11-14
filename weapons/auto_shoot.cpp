@@ -2,9 +2,9 @@
 
 void auto_shoot(Gun* gun)
 {
-	if(_g.gun_cooldown > 0.0f)
+	if(_g.gun_cooldown > 0)
 	{
-		_g.gun_cooldown -= delta;
+		_g.gun_cooldown--;
 		return;
 	}
     if(IsMouseButtonDown(0))
@@ -13,11 +13,11 @@ void auto_shoot(Gun* gun)
         for(int i = 0; i < gun->bullet_amt; i++)
         {
             Bullet bullet = Bullet();
-            bullet.parent_idx = 0;
+            bullet.from_player = true;
             bullet.damage = gun->damage;
             bullet.speed = gun->bullet_speed;
             bullet.size = gun->bullet_size;
-            bullet.time_limit = gun->bullet_time;
+            bullet.time = gun->bullet_time;
             if(i > 0){bullet.speed+=randf(-1, 1);}
 
             Vector2 aim_dir = Vector2Normalize(cursor_pos);

@@ -2,34 +2,44 @@
 
 void basic_bullet_step(Bullet* bullet)
 {
-    for(int i = 0; i < total_actors; i++)
+    if(bullet->from_player)
     {
-        if(!actor_list[i].exists){break;}
-        if(actor_list[i].state <= 0){continue;}
-        if(i == 0 && bullet->parent_idx == 0){continue;}
-        if(i != 0 && bullet->parent_idx != 0){break;}
-
-        if(Vector2Distance(actor_list[i].position, bullet->position) <= actor_list[i].size+bullet->size)
+        for(int i = 1; i < total_actors; i++)
         {
-            int j = 0;
-            for(j = 0; j < hit_data.size(); j++)
+            if(!actor_list[i].exists){break;}
+            if(actor_list[i].state <= 0){continue;}
+
+            if(Vector2Distance(actor_list[i].position, bullet->position) <= actor_list[i].size+bullet->size)
             {
-                if(hit_data[j].source == (int)bullet && hit_data[j].actor == &actor_list[i])
+                int j = 0;
+                for(j = 0; j < hit_data.size(); j++)
                 {
-                    j = -1;
-                    break;
+                    if(hit_data[j].source == (int)bullet && hit_data[j].actor == &actor_list[i])
+                    {
+                        j = -1;
+                        break;
+                    }
                 }
+                if (j == -1) { continue; }
+                bullet->params[2]--;
+                add_hit(&actor_list[i], (int)bullet, 30);
+                damage_actor(&actor_list[i], bullet->damage);
+                apply_status(&actor_list[i], bullet->params[0], bullet->params[1]);
             }
-            if (j == -1) { continue; }
+        }
+    }else{
+        if(PLAYER.damage_timer < -30 && Vector2Distance(PLAYER.position, bullet->position) <= PLAYER.size+bullet->size)
+        {
             bullet->params[2]--;
-            add_hit(&actor_list[i], (int)bullet, 30);
-            damage_actor(&actor_list[i], bullet->damage);
-            apply_status(&actor_list[i], bullet->params[0], bullet->params[1]);
+            PLAYER.damage_timer = 10;
+            damage_actor(&PLAYER, bullet->damage);
+            apply_status(&PLAYER, bullet->params[0], bullet->params[1]);
         }
     }
+    
 
-    bullet->time++;
-    if(bullet->time >= bullet->time_limit)
+    bullet->time--;
+    if(bullet->time <= 0)
     {
         bullet->exists = false;
     }

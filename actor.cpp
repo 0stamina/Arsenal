@@ -14,6 +14,7 @@ int init_actor(Vector2 pos, int type)
     actor.position.x = pos.x;
     actor.position.y = pos.y;
 
+
     actor.exists = true;
 
     actor_init[actor.type](&actor);
@@ -25,38 +26,10 @@ void destroy_actor(int idx)
 {
     Actor actor = actor_list[idx];
     unassign_sprite(actor.sprite_idx);
-    if(actor.type >= 2)
-    {
-        _g.point_stash += actor.params[23];
-        _g.total_kills++;
-        _g.multikills++;
-        _g.multikill_timer = MULTIKILL_TIME;
-
-        if(randf(0.f, 1.f) <= PICKUP_RATE){pickup_list.push_back(actor.position);}
-    }
-
-    for(int i = bullet_list.size()-1; i >= 0; i--)
-    {
-        Bullet& bullet = bullet_list[i];
-        if(bullet.parent_idx == idx)
-        {
-            bullet.parent_idx = -1;
-        }
-    }
 
     actor_list[idx] = actor_list[total_actors-1];
     total_actors--;
     total_actor_types[actor.type]--;
-
-
-    if(actor.type == 4)
-    {
-        for(int i = 0; i < 10; i++)
-        {
-            Vector2 offset = {randi(-5, 5), randi(-5, 5)};
-            init_actor(Vector2Add(actor.position, offset), 5);
-        }
-    }
 }
 
 void move_actor(Actor* actor)
@@ -81,34 +54,44 @@ void push_actor(Actor* a1, Actor* a2, float dist)
 
 
     //touch damage
-    if(a2 == &PLAYER && a1->touch_damage)
+    if(a2 == &PLAYER && PLAYER.damage_timer < -30 && a1->touch_damage)
     {
-        int j = 0;
-        for(j = 0; j < hit_data.size(); j++)
-        {
-            if(hit_data[j].source == (int)a1 && hit_data[j].actor == a2){j = -1;break;}
-        }
-
-        if (j != -1)
-        {
-            add_hit(a2, (int)a1, 15);
-            damage_actor(a2, 1);
-        }
-        
+        PLAYER.damage_timer = 10;
+        damage_actor(&PLAYER, 3);
     }
 }
 
 void damage_actor(Actor* actor, int damage)
 {
+    if(actor == &PLAYER){return;}
     actor->health -= damage;
     if(actor->health <= 0)
     {
-        actor->exists = false;
+        actor->state = -2;
+        actor->state_timer = 0;
     }
 }
 
 void collision(Actor* actor)
 {
+    if(actor == &PLAYER)
+    {
+        for(int j = total_actors-1; j >= 0; j--)
+        {
+            if(actor_list[j].pushable){continue;}
+            if(actor_list[j].state < 0){continue;}
+            float dist = Vector2Distance(
+                Vector2Add(actor->position, actor->velocity), 
+                Vector2Add(actor_list[j].position, actor_list[j].velocity)
+                );
+            if(dist <= actor->size + actor_list[j].size)
+            {
+                push_actor(actor, &actor_list[j], ((actor->size+actor_list[j].size)-dist)/2.0f);
+            }
+        }
+        return;
+    }
+
     for(int j = total_actors-1; j >= 0; j--)
     {
         if(actor_list[j].state < 0){continue;}
@@ -149,7 +132,7 @@ void process_status(Actor* actor)
     switch(actor->curr_status)
     {
         case BURN_IDX:
-            if(actor->status_timer%10 == 0)
+            if(actor->status_timer%20 == 0)
             {
                 damage_actor(actor, 5);
             }

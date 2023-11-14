@@ -58,7 +58,7 @@ void step()
             }
         }
 
-        if(i){collision(&actor);}
+        collision(&actor);
         wall_collision(&actor);
         move_actor(&actor);
     }

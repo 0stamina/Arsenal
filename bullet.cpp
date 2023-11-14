@@ -36,5 +36,19 @@ void init_bullet(Bullet* bullet, float rot, Vector2 pos, int type)
             bullet->logic = 2;
             bullet->draw = 0;
             break;
+        //explosion
+        case 5:
+            bullet->logic = 2;
+            bullet->draw = 4;
+            bullet->size = 50.f;
+            bullet->speed = 0;
+            bullet->time = 10;
+            break;
+        //thrown bomb
+        case 6:
+            bullet->logic = 3;
+            bullet->draw = 3;
+            bullet->params[2] = 20;
+            break;
     }
 }

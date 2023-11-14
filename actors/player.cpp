@@ -8,7 +8,7 @@ void player_init(Actor* actor)
     Animation idle = Animation();
     idle.start = 0;
     idle.end = 0;
-    actor->max_speed = 2.0f;
+    actor->max_speed = 3.0f;
     actor->animation_set.push_back(idle);
 
     actor->state = 1;
@@ -16,6 +16,12 @@ void player_init(Actor* actor)
 
 void player_step(Actor* actor)
 {
+
+    if(actor->state == -2)
+    {
+        actor->exists = false;
+        return;
+    }
     for(int i = pickup_list.size()-1; i >= 0; i--)
     {
         if(Vector2Distance(pickup_list[i],actor->position) <= actor->size+PICKUP_SIZE)
@@ -45,7 +51,7 @@ void player_step(Actor* actor)
     }
     else
     {
-        actor->cur_speed -= 0.2f;
+        actor->cur_speed -= 0.6f;
     }
 
     float max = actor->max_speed;
@@ -78,6 +84,7 @@ void player_draw(Actor* actor)
     draw_status(actor);
 
     if(actor->damage_timer > 0){actor->draw_col = RED;}
+    else if(actor->damage_timer > -30 && actor->damage_timer%10){return;}
 
     Rectangle dest = source;
     dest.width = 48;

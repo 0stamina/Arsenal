@@ -13,11 +13,11 @@ void single_shoot(Gun* gun)
         for(int i = 0; i < gun->bullet_amt; i++)
         {
             Bullet bullet = Bullet();
-            bullet.parent_idx = 0;
+            bullet.from_player = true;
             bullet.damage = gun->damage;
             bullet.speed = gun->bullet_speed;
             bullet.size = gun->bullet_size;
-            bullet.time_limit = gun->bullet_time;
+            bullet.time = gun->bullet_time;
             if(i > 0){bullet.speed+=randf(-1, 1);}
 
             Vector2 aim_dir = Vector2Normalize(cursor_pos);

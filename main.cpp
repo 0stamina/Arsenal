@@ -46,6 +46,7 @@ int main(void)
     SetExitKey(KEY_NULL);
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(960, 720, "Arsenal");
+    InitAudioDevice();
     RenderTexture2D target = LoadRenderTexture(res_x, res_y);
 
     // The target's height is flipped (in the source Rectangle), due to OpenGL reasons
@@ -85,6 +86,8 @@ int main(void)
             Rectangle bg_src = {world_camera.target.x, world_camera.target.y, base_w, base_w};
             Rectangle bg_dest = {0.0f, 0.0f, base_w, base_w};
             DrawTexturePro(bg_texture, bg_src, bg_dest, Vector2Zero(), 0.0f, WHITE);
+
+            DrawText(std::to_string(random_spawn_timer).c_str(), 0, 0, 10, BLACK);
             
             
             BeginMode2D(world_camera);
@@ -185,11 +188,10 @@ void load_guns()
     rifle.bullet_type = 0;
     rifle.bullet_time = 300;
     rifle.bullet_speed = 6.0f;
-    rifle.fire_rate = 0.08f;
+    rifle.fire_rate = 8;
     rifle.spread = 0.1f;
     rifle.durability = 100;
     gun_list.push_back(rifle);
-    tier_1_guns.push_back(rifle);
     gun_sprite_list.push_back(LoadTexture("resources/gun.png"));
     
     Gun shotgun = Gun();
@@ -200,25 +202,23 @@ void load_guns()
     shotgun.bullet_time = 35;
     shotgun.bullet_amt = 5;
     shotgun.bullet_speed = 6.0f;
-    shotgun.fire_rate = 0.35f;
+    shotgun.fire_rate = 15;
     shotgun.spread = 0.3f;
     shotgun.durability = 40;
     gun_list.push_back(shotgun);
-    tier_1_guns.push_back(shotgun);
 
     Gun bow = Gun();
     bow.name = "Charge Gun";
     bow.shoot_func = 2;
-    bow.damage = 345;
+    bow.damage = 300;
     bow.bullet_type = 4;
     bow.bullet_time = 70;
     bow.bullet_size = 25.0f;
     bow.bullet_speed = 15.0f;
-    bow.fire_rate = 0.2f;
+    bow.fire_rate = 25;
     bow.spread = 0.0f;
     bow.durability = 20;
     gun_list.push_back(bow);
-    tier_1_guns.push_back(bow);
     
     Gun flamethrower = Gun();
     flamethrower.name = "Flamethrower";
@@ -228,13 +228,25 @@ void load_guns()
     flamethrower.bullet_size = 8.0f;
     flamethrower.bullet_time = 100;
     flamethrower.bullet_amt = 5;
-    flamethrower.bullet_speed = 4.5f;
-    flamethrower.fire_rate = 0.05f;
+    flamethrower.bullet_speed = 3.5f;
+    flamethrower.fire_rate = 5;
     flamethrower.spread = 0.2f;
     flamethrower.durability = 80;
     gun_list.push_back(flamethrower);
-    tier_1_guns.push_back(flamethrower);
     
+    
+    Gun grenade_launcher = Gun();
+    grenade_launcher.name = "G. Launcher";
+    grenade_launcher.shoot_func = 0;
+    grenade_launcher.damage = 200;
+    grenade_launcher.bullet_type = 6;
+    grenade_launcher.bullet_size = 8.0f;
+    grenade_launcher.bullet_time = 200;
+    grenade_launcher.bullet_speed = 3.5f;
+    grenade_launcher.fire_rate = 20;
+    grenade_launcher.spread = 0.f;
+    grenade_launcher.durability = 30;
+    gun_list.push_back(grenade_launcher);
 }
 
 void restart()

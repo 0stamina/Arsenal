@@ -30,11 +30,11 @@ void charge_shoot(Gun* gun)
             float charge_percent = _g.gun_charge/(float)max_charge;
             float v = (pow(charge_percent, 0.5)+coef-1.f)/coef;
 
-            bullet.parent_idx = 0;
+            bullet.from_player = true;
             bullet.damage = gun->damage*v;
             bullet.speed = gun->bullet_speed*v;
             bullet.size = gun->bullet_size*Clamp(v, 0.5f, v);
-            bullet.time_limit = gun->bullet_time;
+            bullet.time = gun->bullet_time;
             if(i > 0){bullet.speed+=randf(-1, 1);}
 
             Vector2 aim_dir = Vector2Normalize(cursor_pos);

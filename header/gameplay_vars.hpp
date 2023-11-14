@@ -9,9 +9,9 @@ struct GameplayVars
     int total_blood = 0;
     int total_kills = 0;
 
-    int curr_gun = randi(0, 4);
+    int curr_gun = randi(0, 5);
     int gun_durability = 0;
-    float gun_cooldown = 0.f;
+    int gun_cooldown = 0;
     int gun_charge = 0.f;
     float walk_timer = 0.f;
 

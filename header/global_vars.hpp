@@ -29,7 +29,7 @@
 
 #define WALK_TIME_MAX 0.2f
 
-#define MULTIKILL_TIME 1.f
+#define MULTIKILL_TIME 0.5f
 
 #define TAU 6.283185307179586
 #define PICKUP_SIZE 5.f
@@ -49,11 +49,11 @@ const Rectangle map_rect = {-map_siz/2.0f, -map_siz/2.0f, map_siz, map_siz};
 extern float spawn_time;
 extern float spawn_timer;
 
-#define BASIC_ENEMY_MAX 127
+#define BASIC_ENEMY_MAX 131
 extern int basic_enemy_timer;
-#define BASIC_SHOOTER_MAX 307
+#define BASIC_SHOOTER_MAX 251
 extern int basic_shooter_timer;
-#define RANDOM_SPAWN_MAX 1823
+#define RANDOM_SPAWN_MAX 449
 extern int random_spawn_timer;
 
 #define HEALTH_TIME 1.0f;
@@ -69,6 +69,7 @@ extern Camera2D world_camera;
 extern Texture bg_texture;
 extern Texture arrow_texture;
 extern Actor actor_list[];
+
 extern int total_actors;
 extern int total_actor_types[];
 extern std::vector<Sprite> sprite_list;
@@ -78,13 +79,6 @@ extern std::vector<Texture> gun_sprite_list;
 extern std::vector<Vector2> pickup_list;
 extern std::vector<Gun> gun_list;
 extern std::vector<Hit> hit_data;
-
-extern std::vector<Gun> tier_1_guns;
-extern std::vector<Gun> tier_2_guns;
-extern std::vector<Gun> tier_3_guns;
-extern std::vector<Gun> tier_4_guns;
-
-const std::vector<Gun> gun_tiers[4] = {tier_1_guns, tier_2_guns, tier_3_guns, tier_4_guns};
 
 extern unsigned int animation_timer;
 extern float delta;

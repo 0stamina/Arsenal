@@ -24,6 +24,7 @@ struct Actor
     float cur_speed = 0.0f;
     Vector2 move_dir = { 0.0f, 0.0f };
     Vector2 velocity = { 0.0f, 0.0f };
+    Vector2 target_pos = { 0.0f, 0.0f };
 
     unsigned int sprite_idx = -1;
     unsigned int aframe = 0;

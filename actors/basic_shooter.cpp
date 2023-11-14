@@ -3,7 +3,7 @@
 
 namespace basic_shooter
 {
-
+    const int DIE = -2;
     const int SPAWN = -1;
     const int FOLLOW = 1;
     const int AIM = 2;
@@ -14,6 +14,7 @@ namespace basic_shooter
 
     void follow_player(Actor* actor);
     void spawning(Actor* actor);
+    void dying(Actor* actor);
     void shoot(Actor* actor);
     void aim(Actor* actor);
     void shoot_idle(Actor* actor);
@@ -42,6 +43,9 @@ void basic_shooter_step(Actor* actor)
 {
     switch(actor->state)
     {
+        case DIE:
+            dying(actor);
+            break;
         case SPAWN:
             spawning(actor);
             break;
@@ -62,6 +66,7 @@ void basic_shooter_step(Actor* actor)
 
 void basic_shooter_draw(Actor* actor)
 {
+    if(actor->state == DIE){return;}
     Texture texture = sprite_list[actor->sprite_idx].texture;
     Rectangle source = {0.0f, 0.0f, texture.width/2, texture.height};
     Vector2 dir = Vector2Normalize(Vector2Subtract(PLAYER.position, actor->position));
@@ -80,6 +85,22 @@ void basic_shooter_draw(Actor* actor)
     if(dir.x < 0){source.width*=-1;}
     DrawTexturePro(texture, source, dest, {dest.width/2.f, dest.height*0.75f}, 0, actor->draw_col);
 }
+
+void basic_shooter::dying(Actor* actor)
+{
+    if(actor->state_timer == 1)
+    {
+        
+        _g.point_stash += actor->blood_value;
+        _g.total_kills++;
+        _g.multikills++;
+        _g.multikill_timer = MULTIKILL_TIME;
+
+        if(randf(0.f, 1.f) <= PICKUP_RATE){pickup_list.push_back(actor->position);}
+        actor->exists = false;
+    }
+}
+
 
 void basic_shooter::spawning(Actor* actor)
 {
@@ -110,7 +131,6 @@ void basic_shooter::shoot(Actor* actor)
     if(dir.y > 0.0f){angle*=-1.0f;}
 
     Bullet bullet = Bullet();
-    bullet.parent_idx = ((int)actor-(int)actor_list)/sizeof(Actor);
     bullet.damage = 3;
     bullet.size = 15.f;
     bullet.speed = 3.f;
@@ -127,7 +147,7 @@ void basic_shooter::shoot_idle(Actor* actor)
     if(actor->state_timer >= 150)
     {
         actor->state = AIM;
-        if(Vector2Distance(PLAYER.position, actor->position) > 300.f)
+        if(Vector2Distance(PLAYER.position, actor->position) > 170.f)
         {
             actor->state = FOLLOW;
             actor->state_timer = 0;
@@ -149,7 +169,7 @@ void basic_shooter::follow_player(Actor* actor)
     if(actor->cur_speed > Vector2Length(actor->velocity)){actor->cur_speed = Vector2Length(actor->velocity);}
 
 
-    if(Vector2Length(heading) <= 200.f)
+    if(Vector2Length(heading) <= 150.f)
     {
         actor->state = AIM;
         actor->state_timer = 0;

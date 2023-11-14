@@ -4,7 +4,7 @@
 void basic_bullet_draw(Bullet* bullet)
 {
     Texture texture = bullet_sprite_list[bullet->spr_idx];
-    Rectangle source = {0.0f, 0.0f, (float)texture.width, (float)texture.height};
+    Rectangle source = {0.0f, 0.0f, (float)texture.width/2, (float)texture.height};
 
     Rectangle dest = source;
     dest.x = bullet->position.x;

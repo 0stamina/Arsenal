@@ -50,12 +50,13 @@ void spawn_enemies()
         
         if(random_spawn_timer <= 0)
         {
-            int type = 4;
-            // do
-            // {
-            //     type = randi(4,5);
-            // }
-            // while(type == 0 || type == 5);
+            int type = 0;
+            do
+            {
+                type = randi(4,6);
+            }
+            while(type == 0);
+            
 
             Vector2 p = {0.0f, 0.0f};
             do
@@ -85,9 +86,9 @@ int spawn_amt(int type)
         case 3:
             return randi(2, 3);
         case 4:
-            return randi(1, 2);
-        // case 6:
-        //     return randi(2, 3);
+            return 1;
+        case 5:
+            return randi(1, 3);
         default:
             return 0;
     }

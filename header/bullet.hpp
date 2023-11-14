@@ -13,14 +13,13 @@ struct Bullet
     float size = 10.0f;
     int damage = 1;
 
-    int time_limit = 100;
-    int time = 0;
+    int time = 100;
 
     float speed = 5.0f;
     float accel = 0.0f;
     float rotation = 0;
     Vector2 position = { 0.0f, 0.0f };
-    int parent_idx = 0;
+    bool from_player = false;
 
     int params[8] = {};
 };

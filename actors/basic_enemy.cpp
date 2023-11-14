@@ -2,7 +2,7 @@
 #include "global_vars.hpp"
 namespace basic_enemy
 {
-
+    const int DIE = -2;
     const int SPAWN = -1;
     const int FOLLOW = 1;
     const int AIM = 2;
@@ -13,6 +13,7 @@ namespace basic_enemy
 
     void follow_player(Actor* actor);
     void spawning(Actor* actor);
+    void dying(Actor* actor);
 }
 
 using namespace basic_enemy;
@@ -22,7 +23,7 @@ void basic_enemy_init(Actor* actor)
     actor->sprite_idx = assign_sprite("resources/enemyguy.png");
     actor->params[4] = -1;
     actor->size = 1.0f;
-    actor->max_speed = 1.0f;
+    actor->max_speed = 1.2f;
     actor->cur_speed = actor->max_speed;
 
     actor->health = 100;
@@ -38,8 +39,14 @@ void basic_enemy_init(Actor* actor)
 
 void basic_enemy_step(Actor* actor)
 {
+
+
+
     switch(actor->state)
     {
+        case DIE:
+            dying(actor);
+            break;
         case SPAWN:
             spawning(actor);
             break;
@@ -51,6 +58,7 @@ void basic_enemy_step(Actor* actor)
 
 void basic_enemy_draw(Actor* actor)
 {
+    if(actor->state == DIE){return;}
     Texture texture = sprite_list[actor->sprite_idx].texture;
     Rectangle source = {0.0f, 0.0f, texture.width/2, (int)(texture.height*(actor->size/max_size))};
 
@@ -66,6 +74,21 @@ void basic_enemy_draw(Actor* actor)
 
     //if(actor->move_dir.y < 0){source.x = texture.width/2;}
     DrawTexturePro(texture, source, dest, {dest.width/2.f, dest.height*0.75f}, 0, actor->draw_col);
+}
+
+void basic_enemy::dying(Actor* actor)
+{
+    if(actor->state_timer == 0)
+    {
+        
+        _g.point_stash += actor->blood_value;
+        _g.total_kills++;
+        _g.multikills++;
+        _g.multikill_timer = MULTIKILL_TIME;
+
+        if(randf(0.f, 1.f) <= PICKUP_RATE){pickup_list.push_back(actor->position);}
+        actor->exists = false;
+    }
 }
 
 void basic_enemy::spawning(Actor* actor)

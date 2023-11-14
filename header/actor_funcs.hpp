@@ -19,6 +19,9 @@ void basic_shooter_draw(Actor* actor);
 void wall_slime_init(Actor* actor);
 void wall_slime_step(Actor* actor);
 void wall_slime_draw(Actor* actor);
+void scared_bomber_init(Actor* actor);
+void scared_bomber_step(Actor* actor);
+void scared_bomber_draw(Actor* actor);
 
 extern void(*(actor_init[]))(Actor*);
 extern void(*(actor_step[]))(Actor*);
