@@ -43,6 +43,8 @@ void init_bullet(Bullet* bullet, float rot, Vector2 pos, int type)
             bullet->size = 50.f;
             bullet->speed = 0;
             bullet->time = 10;
+            SetSoundVolume(sfx[7], 1.f/(1.f+(Vector2Distance(bullet->position, PLAYER.position)/200.f)));
+            PlaySound(sfx[7]);
             break;
         //thrown bomb
         case 6:

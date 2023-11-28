@@ -11,6 +11,7 @@ namespace basic_shooter
     const int RELOAD = 4;
 
     float max_size = 10.f;
+    float hover_offset = 0.f;
 
     void follow_player(Actor* actor);
     void spawning(Actor* actor);
@@ -24,7 +25,7 @@ using namespace basic_shooter;
 
 void basic_shooter_init(Actor* actor)
 {
-    actor->sprite_idx = assign_sprite("resources/gunenemy.png");
+    actor->sprite_idx = 2;
     actor->params[4] = -1;
     actor->size = 1.0f;
     actor->max_speed = 1.0f;
@@ -37,10 +38,12 @@ void basic_shooter_init(Actor* actor)
 
     actor->state = SPAWN;
     actor->state_timer = randi(0,8);
+    actor->params[10] = rand();
 }
 
 void basic_shooter_step(Actor* actor)
 {
+    actor->params[10]++;
     switch(actor->state)
     {
         case DIE:
@@ -61,25 +64,25 @@ void basic_shooter_step(Actor* actor)
         case RELOAD:
             shoot_idle(actor);
             break;
+        default:
+            break;
     }
 }
 
 void basic_shooter_draw(Actor* actor)
 {
     if(actor->state == DIE){return;}
-    Texture texture = sprite_list[actor->sprite_idx].texture;
+    Texture texture = actor_sprite_list[actor->sprite_idx];
     Rectangle source = {0.0f, 0.0f, texture.width/2, texture.height};
     Vector2 dir = Vector2Normalize(Vector2Subtract(PLAYER.position, actor->position));
 
     draw_status(actor);
 
-    if(actor->damage_timer > 0){actor->draw_col = RED;}
-
-    Rectangle dest = source;
+    Rectangle dest;
     dest.width = 32*(actor->size/max_size);
     dest.height = 32;
     dest.x = actor->position.x;
-    dest.y = actor->position.y;
+    dest.y = actor->position.y-10+sin(actor->params[10]/10.f)*3.f;
 
     if(dir.y < 0){source.x = texture.width/2;}
     if(dir.x < 0){source.width*=-1;}
@@ -88,7 +91,7 @@ void basic_shooter_draw(Actor* actor)
 
 void basic_shooter::dying(Actor* actor)
 {
-    if(actor->state_timer == 1)
+    if(actor->state_timer > 0)
     {
         
         _g.point_stash += actor->blood_value;
@@ -96,7 +99,7 @@ void basic_shooter::dying(Actor* actor)
         _g.multikills++;
         _g.multikill_timer = MULTIKILL_TIME;
 
-        if(randf(0.f, 1.f) <= PICKUP_RATE){pickup_list.push_back(actor->position);}
+        if(randf(0.f, 1.f) <= PICKUP_RATE){pickup_list[total_pickups++] = actor->position;}
         actor->exists = false;
     }
 }
@@ -135,8 +138,10 @@ void basic_shooter::shoot(Actor* actor)
     bullet.size = 15.f;
     bullet.speed = 3.f;
 
+    SetSoundVolume(sfx[8], 1.f/(1.f+(Vector2Distance(actor->position, PLAYER.position)/200.f)));
+    PlaySound(sfx[8]);
     init_bullet(&bullet, angle, pos, 0);
-    bullet_list.push_back(bullet);
+    bullet_list[total_bullets++] = bullet;
 
     actor->state = RELOAD;
     actor->state_timer = 0;

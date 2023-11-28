@@ -58,12 +58,12 @@ void push_actor(Actor* a1, Actor* a2, float dist)
     {
         PLAYER.damage_timer = 10;
         damage_actor(&PLAYER, 3);
+        if(!IsSoundPlaying(sfx[1])){PlaySound(sfx[1]);}
     }
 }
 
 void damage_actor(Actor* actor, int damage)
 {
-    if(actor == &PLAYER){return;}
     actor->health -= damage;
     if(actor->health <= 0)
     {
@@ -121,7 +121,7 @@ void wall_collision(Actor* actor)
 
 void apply_status(Actor* actor, int status, int time)
 {
-    if(actor->curr_status > -1){return;}
+    //if(actor->curr_status > -1){return;}
 
     actor->curr_status = status;
     actor->status_timer = time;
@@ -138,6 +138,16 @@ void process_status(Actor* actor)
             }
             break;
     }
+    
+
+    if(actor->curr_status != -1)
+    {
+        actor->status_timer--;
+        if(actor->status_timer <= 0)
+        {
+            actor->curr_status = -1;
+        }
+    }
 }
 
 void draw_status(Actor* actor)
@@ -149,5 +159,7 @@ void draw_status(Actor* actor)
             actor->draw_col = ORANGE;
             break;
     }
+
+    if(actor->damage_timer > 0){actor->draw_col = {230, 21, 142, 255};}
 }
 

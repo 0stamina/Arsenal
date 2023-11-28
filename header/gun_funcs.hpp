@@ -4,9 +4,9 @@
 
 #include "global_vars.hpp"
 
-void single_shoot(Gun*);
-void auto_shoot(Gun*);
-void charge_shoot(Gun*);
-extern void(*(gun_shoot[]))(Gun*);
+bool single_shoot(Gun*);
+bool auto_shoot(Gun*);
+bool charge_shoot(Gun*);
+extern bool(*(gun_shoot[]))(Gun*);
 
 #endif

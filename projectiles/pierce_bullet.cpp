@@ -13,9 +13,9 @@ void pierce_bullet_step(Bullet* bullet)
             if(Vector2Distance(actor_list[i].position, bullet->position) <= actor_list[i].size+bullet->size)
             {
                 int j = 0;
-                for(j = 0; j < hit_data.size(); j++)
+                for(j = 0; j < total_hits; j++)
                 {
-                    if(hit_data[j].source == (int)bullet && hit_data[j].actor == &actor_list[i])
+                    if(hit_data_list[j].source == (int)bullet && hit_data_list[j].actor == &actor_list[i])
                     {
                         j = -1;
                         break;

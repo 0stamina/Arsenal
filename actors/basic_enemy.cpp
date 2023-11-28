@@ -20,7 +20,7 @@ using namespace basic_enemy;
 
 void basic_enemy_init(Actor* actor)
 {
-    actor->sprite_idx = assign_sprite("resources/enemyguy.png");
+    actor->sprite_idx = 1;
     actor->params[4] = -1;
     actor->size = 1.0f;
     actor->max_speed = 1.2f;
@@ -59,16 +59,14 @@ void basic_enemy_step(Actor* actor)
 void basic_enemy_draw(Actor* actor)
 {
     if(actor->state == DIE){return;}
-    Texture texture = sprite_list[actor->sprite_idx].texture;
+    Texture texture = actor_sprite_list[actor->sprite_idx];
     Rectangle source = {0.0f, 0.0f, texture.width/2, (int)(texture.height*(actor->size/max_size))};
 
     draw_status(actor);
 
-    if(actor->damage_timer > 0){actor->draw_col = RED;}
-
-    Rectangle dest = source;
+    Rectangle dest;
     dest.width = 32;
-    dest.height = 24*(actor->size/max_size);
+    dest.height = 26*(actor->size/max_size);
     dest.x = actor->position.x;
     dest.y = actor->position.y;
 
@@ -78,7 +76,7 @@ void basic_enemy_draw(Actor* actor)
 
 void basic_enemy::dying(Actor* actor)
 {
-    if(actor->state_timer == 0)
+    if(actor->state_timer > 0)
     {
         
         _g.point_stash += actor->blood_value;
@@ -86,7 +84,7 @@ void basic_enemy::dying(Actor* actor)
         _g.multikills++;
         _g.multikill_timer = MULTIKILL_TIME;
 
-        if(randf(0.f, 1.f) <= PICKUP_RATE){pickup_list.push_back(actor->position);}
+        if(randf(0.f, 1.f) <= PICKUP_RATE){pickup_list[total_pickups++] = actor->position;}
         actor->exists = false;
     }
 }

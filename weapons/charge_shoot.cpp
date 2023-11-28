@@ -1,10 +1,8 @@
 #include "global_vars.hpp"
 int max_charge = 100;
 float coef = 1.25f;
-void charge_shoot(Gun* gun)
+bool charge_shoot(Gun* gun)
 {
-	
-    
     if(IsMouseButtonDown(0))
     {
         _g.walk_timer = WALK_TIME_MAX;
@@ -18,7 +16,7 @@ void charge_shoot(Gun* gun)
         {
             _g.gun_charge = 0;
         }
-		return;
+		return false;
 	}
     if(IsMouseButtonReleased(0))
     {
@@ -39,7 +37,7 @@ void charge_shoot(Gun* gun)
 
             Vector2 aim_dir = Vector2Normalize(cursor_pos);
 
-            Vector2 pos = Vector2Add(PLAYER.position, Vector2Scale(aim_dir, 12.0f));
+            Vector2 pos = Vector2Add(PLAYER.position, Vector2Scale(aim_dir, 30.0f));
 
             float angle = acosf(Vector2DotProduct({1.0f, 0.0f}, aim_dir))+randf(0.0f, gun->spread)-gun->spread/2.0f;
             float spread = 0.0f;
@@ -52,12 +50,15 @@ void charge_shoot(Gun* gun)
 
             init_bullet(&bullet, angle, pos, gun->bullet_type);
 
-            bullet_list.push_back(bullet);
+            bullet_list[total_bullets] = bullet;
+            total_bullets++;
             _g.gun_cooldown = gun->fire_rate;
         }
         if(_g.gun_durability > 0){_g.gun_durability--;}
         else{damage_actor(&PLAYER, 1);}
 
         _g.gun_charge = 0.f;
+		return true;
     }
+    return false;
 }

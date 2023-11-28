@@ -3,27 +3,25 @@
 
 void step()
 {
-    if((!PLAYER.exists||IsKeyDown(KEY_RIGHT_CONTROL)||IsKeyDown(KEY_LEFT_CONTROL)) && IsKeyPressed(KEY_R)){
+    UpdateMusicStream(song);
+    if(!PLAYER.exists && IsKeyPressed(KEY_R)){
         restart();
     }
     if(!PLAYER.exists){return;}
-
-    
-    if(IsKeyPressed(KEY_RIGHT)){_g.curr_gun++; swap_gun();}
-    if(IsKeyPressed(KEY_LEFT)){_g.curr_gun--; swap_gun();}
     
     if(_g.walk_timer > 0.f){_g.walk_timer -= delta;}
 
     //run projectile code
-    for(int i = bullet_list.size()-1; i >= 0; i--)
+    for(int i = total_bullets-1; i >= 0; i--)
     {
         Bullet& bullet = bullet_list[i];
+        bullet.position = Vector2Add(bullet.position, Vector2Scale({cosf(bullet.rotation), -sinf(bullet.rotation)}, bullet.speed));
         if(!bullet.exists)
         {
-            bullet_list.erase(bullet_list.begin()+i);
+            total_bullets--;
+            bullet_list[i] = bullet_list[total_bullets];
             continue;
         }
-        bullet.position = Vector2Add(bullet.position, Vector2Scale({cosf(bullet.rotation), -sinf(bullet.rotation)}, bullet.speed));
         bullet_step[bullet.logic](&bullet);
     }
 
@@ -41,22 +39,13 @@ void step()
             continue;
         }
         
-        process_status(&actor);
 
         actor_step[actor.type](&actor);
         actor.state_timer++;
 
         if(actor.state < 0){continue;}
         actor.damage_timer--;
-
-        if(actor.curr_status != -1)
-        {
-            actor.status_timer--;
-            if(actor.status_timer <= 0)
-            {
-                actor.curr_status = -1;
-            }
-        }
+        process_status(&actor);
 
         collision(&actor);
         wall_collision(&actor);
@@ -82,7 +71,24 @@ void step()
 
 
     //shoot
-    gun_shoot[gun_list[_g.curr_gun].shoot_func](&gun_list[_g.curr_gun]);
+    if(gun_shoot[gun_list[_g.curr_gun].shoot_func](&gun_list[_g.curr_gun]))
+    {
+        switch(_g.curr_gun)
+        {
+            case 1:
+                PlaySound(sfx[4]);
+                break;
+            case 3:
+                if(!IsSoundPlaying(sfx[5])){PlaySound(sfx[5]);}
+                break;
+            case 4:
+                PlaySound(sfx[6]);
+                break;
+            default:
+                PlaySound(sfx[3]);
+                break;
+        }
+    }
 
     //process_spear();
     proccess_hits();

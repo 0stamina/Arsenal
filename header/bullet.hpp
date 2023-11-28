@@ -10,7 +10,7 @@ struct Bullet
     int logic = -1;
     int draw = -1;
     int spr_idx = 0;
-    float size = 10.0f;
+    float size = 20.0f;
     int damage = 1;
 
     int time = 100;

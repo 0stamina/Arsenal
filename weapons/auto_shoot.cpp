@@ -1,11 +1,11 @@
 #include "global_vars.hpp"
 
-void auto_shoot(Gun* gun)
+bool auto_shoot(Gun* gun)
 {
 	if(_g.gun_cooldown > 0)
 	{
 		_g.gun_cooldown--;
-		return;
+		return false;
 	}
     if(IsMouseButtonDown(0))
     {
@@ -22,7 +22,7 @@ void auto_shoot(Gun* gun)
 
             Vector2 aim_dir = Vector2Normalize(cursor_pos);
 
-            Vector2 pos = Vector2Add(PLAYER.position, Vector2Scale(aim_dir, 12.0f));
+            Vector2 pos = Vector2Add(PLAYER.position, Vector2Scale(aim_dir, 30.0f));
 
             float angle = acosf(Vector2DotProduct({1.0f, 0.0f}, aim_dir))+randf(0.0f, gun->spread)-gun->spread/2.0f;
             float spread = 0.0f;
@@ -35,10 +35,13 @@ void auto_shoot(Gun* gun)
 
             init_bullet(&bullet, angle, pos, gun->bullet_type);
 
-            bullet_list.push_back(bullet);
+            bullet_list[total_bullets] = bullet;
+            total_bullets++;
             _g.gun_cooldown = gun->fire_rate;
         }
         if(_g.gun_durability > 0){_g.gun_durability--;}
         else{damage_actor(&PLAYER, 1);}
+		return true;
     }
+    return false;
 }

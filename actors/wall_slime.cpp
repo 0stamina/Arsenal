@@ -7,7 +7,7 @@ namespace wall_slime
     const int WAIT = 1;
     const int BIRTH = 2;
 
-    float max_size = 40.f;
+    float max_size = 50.f;
 
     void idle(Actor* actor);
     void spawn_slime(Actor* actor);
@@ -19,7 +19,7 @@ using namespace wall_slime;
 
 void wall_slime_init(Actor* actor)
 {
-    actor->sprite_idx = assign_sprite("resources/enemyguy.png");
+    actor->sprite_idx = 1;
     actor->params[4] = -1;
     actor->size = 1.0f;
     actor->max_speed = 1.0f;
@@ -58,16 +58,15 @@ void wall_slime_step(Actor* actor)
 void wall_slime_draw(Actor* actor)
 {
     if(actor->state == DIE){return;}
-    Texture texture = sprite_list[actor->sprite_idx].texture;
+    Texture texture = actor_sprite_list[actor->sprite_idx];
     Rectangle source = {texture.width/2, 0.0f, texture.width/2, (int)(texture.height*(actor->size/max_size))};
 
     draw_status(actor);
 
-    if(actor->damage_timer > 0){actor->draw_col = RED;}
 
-    Rectangle dest = source;
+    Rectangle dest;
     dest.width = 160;
-    dest.height = 120*(actor->size/max_size);
+    dest.height = 129*(actor->size/max_size);
     dest.x = actor->position.x;
     dest.y = actor->position.y;
 
@@ -76,14 +75,14 @@ void wall_slime_draw(Actor* actor)
 
 void wall_slime::dying(Actor* actor)
 {
-    if(actor->state_timer == 1)
+    if(actor->state_timer > 0)
     {
         _g.point_stash += actor->blood_value;
         _g.total_kills++;
         _g.multikills++;
         _g.multikill_timer = MULTIKILL_TIME;
 
-        if(randf(0.f, 1.f) <= PICKUP_RATE){pickup_list.push_back(actor->position);}
+        if(randf(0.f, 1.f) <= PICKUP_RATE){pickup_list[total_pickups++] = actor->position;}
         actor->exists = false;
 
         

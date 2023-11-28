@@ -1,6 +1,6 @@
 #include "random.hpp"
 
-float randi(int lo, int hi)
+int randi(int lo, int hi)
 {
     return lo + (rand())%(hi-lo);
 }

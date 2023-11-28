@@ -68,17 +68,27 @@ extern Vector2 cursor_pos;
 extern Camera2D world_camera;
 extern Texture bg_texture;
 extern Texture arrow_texture;
-extern Actor actor_list[];
+extern Font font_12;
+extern Font font_18;
+extern Font font_24;
+extern std::vector<Sound> sfx;
+extern Music song;
+
 
 extern int total_actors;
 extern int total_actor_types[];
-extern std::vector<Sprite> sprite_list;
-extern std::vector<Bullet> bullet_list;
+extern Actor actor_list[];
+extern int total_bullets;
+extern Bullet bullet_list[];
+extern int total_hits;
+extern Hit hit_data_list[];
+extern int total_pickups;
+extern Vector2 pickup_list[];
+
+extern std::vector<Texture> actor_sprite_list;
 extern std::vector<Texture> bullet_sprite_list;
 extern std::vector<Texture> gun_sprite_list;
-extern std::vector<Vector2> pickup_list;
 extern std::vector<Gun> gun_list;
-extern std::vector<Hit> hit_data;
 
 extern unsigned int animation_timer;
 extern float delta;

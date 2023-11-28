@@ -10,10 +10,10 @@ namespace scared_bomber
     const int THROW = 3;
     const int RUN = 4;
 
-    const float min_range = 100.f;
-    const float max_range = 350.f;
+    const float min_range = 50.f;
+    const float max_range = 250.f;
 
-    const float max_size = 10.f;
+    const float max_size = 15.f;
 
     void follow_player(Actor* actor);
     void spawning(Actor* actor);
@@ -27,7 +27,7 @@ using namespace scared_bomber;
 
 void scared_bomber_init(Actor* actor)
 {
-    actor->sprite_idx = assign_sprite("resources/gunenemy.png");
+    actor->sprite_idx = 3;
     actor->params[4] = -1;
     actor->size = 1.0f;
     actor->max_speed = 2.0f;
@@ -69,7 +69,7 @@ void scared_bomber_step(Actor* actor)
             break;
     }
 
-    if(Vector2Distance(actor->position, PLAYER.position) < min_range*0.5f)
+    if(actor->state > 0 && Vector2Distance(actor->position, PLAYER.position) < min_range*0.5f)
     {
         actor->state = RUN;
         actor->state_timer = 0;
@@ -79,26 +79,32 @@ void scared_bomber_step(Actor* actor)
 void scared_bomber_draw(Actor* actor)
 {
     if(actor->state == DIE){return;}
-    actor->draw_col = SKYBLUE;
-    
+    Texture texture = actor_sprite_list[actor->sprite_idx];
+    Rectangle source = {0.0f, texture.height-(texture.height*(actor->size/max_size)), texture.width, (int)(texture.height*(actor->size/max_size))};
+
     draw_status(actor);
 
-    if(actor->damage_timer > 0){actor->draw_col = RED;}
 
-    float siz = max_size*3.f;
-    DrawRectangle(actor->position.x - siz/2.f, actor->position.y - (siz-actor->size)*0.75f, siz, siz, ColorTint(SKYBLUE,actor->draw_col));
+    Rectangle dest;
+    dest.width = 47;
+    dest.height = 38*(actor->size/max_size);
+    dest.x = actor->position.x;
+    dest.y = actor->position.y;
+
+    //if(actor->move_dir.y < 0){source.x = texture.width/2;}
+    DrawTexturePro(texture, source, dest, {dest.width/2.f, dest.height*0.75f}, 0, actor->draw_col);
 }
 
 void scared_bomber::dying(Actor* actor)
 {
-    if(actor->state_timer == 1)
+    if(actor->state_timer > 0)
     {
         _g.point_stash += actor->blood_value;
         _g.total_kills++;
         _g.multikills++;
         _g.multikill_timer = MULTIKILL_TIME;
 
-        if(randf(0.f, 1.f) <= PICKUP_RATE){pickup_list.push_back(actor->position);}
+        if(randf(0.f, 1.f) <= PICKUP_RATE){pickup_list[total_pickups++] = actor->position;}
         actor->exists = false;
 
         Bullet explo = Bullet();
@@ -106,14 +112,14 @@ void scared_bomber::dying(Actor* actor)
         explo.damage = 50;
 
         init_bullet(&explo, 0, actor->position, 5);
-        bullet_list.push_back(explo);
+        bullet_list[total_bullets++] = explo;
     }
 }
 
 void scared_bomber::spawning(Actor* actor)
 {
     if(actor->state_timer < 15){return;}
-    actor->size += 0.25f;
+    actor->size += 0.2f;
     if(actor->size >= max_size)
     {
         actor->size = max_size;
@@ -190,8 +196,10 @@ void scared_bomber::throw_bombs(Actor* actor)
         bullet.size = 8.f;
         bullet.speed = randf(2.f, 4.f);
 
+        SetSoundVolume(sfx[8], 1.f/(1.f+(Vector2Distance(actor->position, PLAYER.position)/200.f)));
+        PlaySound(sfx[8]);
         init_bullet(&bullet, randf(0, TAU), actor->position, 6);
-        bullet_list.push_back(bullet);
+        bullet_list[total_bullets++] = bullet;
     }
 }
 
@@ -215,7 +223,7 @@ void scared_bomber::run_away(Actor* actor)
         bullet.speed = randf(1.f, 2.f);
 
         init_bullet(&bullet, randf(0, TAU), actor->position, 6);
-        bullet_list.push_back(bullet);
+        bullet_list[total_bullets++] = bullet;
     }
 
     if(Vector2Length(heading) >= max_range*1.25f)

@@ -2,7 +2,7 @@
 
 void player_init(Actor* actor)
 {
-    actor->sprite_idx = assign_sprite("resources/player0.png");
+    actor->sprite_idx = 0;
     //this is temporary you should be loading from a file
     actor->region = { 0.0f, 0.0f, 24.0f, 24.0f };
     Animation idle = Animation();
@@ -22,12 +22,14 @@ void player_step(Actor* actor)
         actor->exists = false;
         return;
     }
-    for(int i = pickup_list.size()-1; i >= 0; i--)
+    for(int i = total_pickups-1; i >= 0; i--)
     {
         if(Vector2Distance(pickup_list[i],actor->position) <= actor->size+PICKUP_SIZE)
         {
-            pickup_list.erase(pickup_list.begin()+i);
+            total_pickups--;
+            pickup_list[i] = pickup_list[total_pickups];
             actor->health += 5;
+            PlaySound(sfx[0]);
             if(actor->health >= 100){actor->health = 100;}
         }
     }
@@ -78,13 +80,10 @@ void player_step(Actor* actor)
 void draw_gun();
 void player_draw(Actor* actor)
 {
-    Texture texture = sprite_list[actor->sprite_idx].texture;
-    Rectangle source = {0.0f, 0.0f, (float)texture.width, (float)texture.height};
+    Texture texture = actor_sprite_list[actor->sprite_idx];
+    Rectangle source = {0.0f, 0.0f, (float)texture.width/4, (float)texture.height/2};
 
     draw_status(actor);
-
-    if(actor->damage_timer > 0){actor->draw_col = RED;}
-    else if(actor->damage_timer > -30 && actor->damage_timer%10){return;}
 
     Rectangle dest = source;
     dest.width = 48;
@@ -95,6 +94,18 @@ void player_draw(Actor* actor)
     if(cursor_pos.x < 0){source.width *= -1.f;}
 
     if(cursor_pos.y <= 0){draw_gun();}
+
+    if(actor->cur_speed > 0)
+    {
+        actor->params[7]++;
+        source.x = (texture.width/4)*(actor->params[7]/10);
+        source.y = texture.height/2;
+    }
+    else
+    {
+        actor->params[7] = 0;
+    }
+
     DrawTexturePro(texture, source, dest, {dest.width/2.f, dest.height*0.75f}, 0, actor->draw_col);
     if(cursor_pos.y >= 0){draw_gun();}
 }
@@ -107,8 +118,8 @@ void draw_gun()
     Rectangle dest = source;
     dest.width/=5;
     dest.height/=5;
-    dest.x = PLAYER.position.x + aim_dir.x*5;
-    dest.y = PLAYER.position.y + aim_dir.y*5-5;
+    dest.x = PLAYER.position.x + aim_dir.x*2;
+    dest.y = PLAYER.position.y + aim_dir.y*2;
 
     
     float angle = acosf(Vector2DotProduct({1.0f, 0.0f}, aim_dir));
@@ -116,6 +127,6 @@ void draw_gun()
 
     if(aim_dir.x < 0){source.height *= -1;}
 
-    DrawTexturePro(texture, source, dest, {0, dest.height/2.f}, angle*RAD2DEG, WHITE);
+    DrawTexturePro(texture, source, dest, {0, dest.height/2}, angle*RAD2DEG, WHITE);
     
 }

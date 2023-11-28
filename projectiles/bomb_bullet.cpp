@@ -18,7 +18,7 @@ void bomb_step(Bullet* bullet)
                 explo1.from_player = true;
                 explo1.damage = bullet->damage;
                 init_bullet(&explo1, 0, bullet->position, 5);
-                bullet_list.push_back(explo1);
+                bullet_list[total_bullets++] = explo1;
                 
 
                 Bullet explo2 = Bullet();
@@ -26,7 +26,7 @@ void bomb_step(Bullet* bullet)
                 explo2.damage = bullet->damage/50;
 
                 init_bullet(&explo2, 0, bullet->position, 5);
-                bullet_list.push_back(explo2);
+                bullet_list[total_bullets++] = explo2;
                 return;
             }
         }
@@ -39,7 +39,7 @@ void bomb_step(Bullet* bullet)
             explo.damage = bullet->damage;
 
             init_bullet(&explo, 0, bullet->position, 5);
-            bullet_list.push_back(explo);
+            bullet_list[total_bullets++] = explo;
             return;
         }
     }
@@ -63,14 +63,14 @@ void bomb_step(Bullet* bullet)
         explo1.damage = bullet->damage;
 
         init_bullet(&explo1, 0, bullet->position, 5);
-        bullet_list.push_back(explo1);
+        bullet_list[total_bullets++] = explo1;
 
         Bullet explo2 = Bullet();
         explo2.from_player = false;
         explo2.damage = bullet->damage/50;
 
         init_bullet(&explo2, 0, bullet->position, 5);
-        bullet_list.push_back(explo2);
+        bullet_list[total_bullets++] = explo2;
         return;
     }
 }

@@ -7,17 +7,20 @@ void add_hit(Actor* actor, int source, int time)
     actor->damage_timer = 10;
     hit.source = source;
     hit.time = time;
-    hit_data.push_back(hit);
+    hit_data_list[total_hits] = hit;
+    total_hits++;
+    if(!IsSoundPlaying(sfx[1])){PlaySound(sfx[1]);}
 }
 
 void proccess_hits()
 {
-    for(int i = hit_data.size()-1; i >= 0; i--)
+    for(int i = total_hits-1; i >= 0; i--)
     {
-        hit_data[i].time--;
-        if(hit_data[i].time <= 0)
+        hit_data_list[i].time--;
+        if(hit_data_list[i].time <= 0)
         {
-            hit_data.erase(hit_data.begin()+i);
+            total_hits--;
+            hit_data_list[i] = hit_data_list[total_hits];
         }
     }
 }
