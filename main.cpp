@@ -74,7 +74,13 @@ int main(void)
 
 
         delta = GetFrameTime();
-        step();
+        UpdateMusicStream(song);
+
+        
+        if(!in_main_menu)
+        {
+            step();
+        }
         
         BeginTextureMode(target);
 
@@ -83,82 +89,91 @@ int main(void)
             float scale = 1.0f;
             Rectangle bg_src = {world_camera.target.x, world_camera.target.y, base_w, base_w};
             Rectangle bg_dest = {0.0f, 0.0f, base_w, base_w};
-            DrawTexturePro(bg_texture, bg_src, bg_dest, Vector2Zero(), 0.0f, WHITE);
             
             
-            BeginMode2D(world_camera);
-
-                draw();
-                int cost_w = MeasureTextEx(font_12, std::to_string(_g.min_cost).c_str(), 12, 1.2f).x;
-                DrawTextEx(font_12, std::to_string(_g.min_cost).c_str(), {-(cost_w/2.f), -1.f}, 12, 1.f, BLACK);
-
-            EndMode2D();
-
-            //ui should go here
-            bool crate_on_screen = true;
-            Vector2 cam_center = Vector2Subtract(world_camera.target, world_camera.offset);
-            if(0.0f > cam_center.y+res_y){crate_on_screen=false;}
-            if(0.0f < cam_center.y){crate_on_screen=false;}
-            if(0.0f > cam_center.x+res_x){crate_on_screen=false;}
-            if(0.0f < cam_center.x){crate_on_screen=false;}
-            if(!crate_on_screen)
+            if(in_main_menu)
             {
-                float siz = 30.0f;
-                Vector2 heading = Vector2Subtract({0.0f, 0.0f}, Vector2Add(cam_center,{res_x/2.0f, res_y/2.0f}));
-                heading.x = Clamp(heading.x, -res_x/2.0f+siz, res_x/2.0f-siz);
-                heading.y = Clamp(heading.y, -res_y/2.0f+siz, res_y/2.0f-siz);
-
-                Vector2 dir = Vector2Normalize(heading);
-                float angle = acosf(Vector2DotProduct({0.0f, -1.0f}, dir));
-                if(dir.x > 0.0f){angle*=-1.0f;}
-
-                Rectangle arrow_source = {0.0f, 0.0f, (float)arrow_texture.width, (float)arrow_texture.height};
-                Rectangle arrow_dest = {res_x/2.0f+heading.x, res_y/2.0f+heading.y, siz, siz};
-
-                DrawTexturePro(arrow_texture, arrow_source, arrow_dest, {siz/2.0f, siz/2.0f}, -angle*(360.0f/TAU), { 255, 255, 255, 60 });
+                main_menu();
             }
-
-            //DrawText(std::to_string(spawn_time).c_str(), 10, 10, 10, WHITE);
-            //DrawText(std::to_string(actor_list.size()).c_str(), 10, 25, 10, WHITE);
-            int score_width = MeasureTextEx(font_24, std::to_string(_g.score).c_str(), 24, 2.4f).x;
-            
-            DrawTextEx(font_24, std::to_string(_g.score).c_str(), {res_x-score_width-30.f, 10.f}, 24, 2.4f, BLACK);
-
-            //health
-            int health_width = MeasureTextEx(font_12, std::to_string(PLAYER.health).c_str(), 12, 1.2f).x;
-            DrawRectangle(20, 20, PLAYER.health / 1.0f, 15, {132, 228, 102, 255});
-            DrawTextEx(font_12, std::to_string(PLAYER.health).c_str(), {70.f-(health_width/2), 23.f}, 12, 1.2f, BLACK);
-
-            //gun and durability
-            Color col = {255, 223, 50, 255};
-            float percent = (float)_g.gun_durability/(float)gun_list[_g.curr_gun].durability*100.0f;
-            char ammo_text [5];
-            itoa((int)percent, ammo_text, 10);
-            strcat(ammo_text, "%");
-
-            int ammo_width = MeasureTextEx(font_12, ammo_text, 12, 1.2f).x;
-
-            if(percent > 100.0f){col = {253, 0, 187, 255};percent = 100.0f;}
-            if(percent <= 20.0f){col = RED;}
-
-            DrawRectangle(20, 40, percent, 15, col);
-            DrawTextEx(font_12, ammo_text, {70.f-(ammo_width/2), 43.f}, 12, 1.2f, BLACK);
-
-            DrawTextEx(font_12, gun_list[_g.curr_gun].name, {20, 60}, 12, 1.2f, BLACK);
-
-
-            //blood
-            DrawTextEx(font_12, std::to_string((int)_g.blood).c_str(), {175, 20}, 12, 1.2f, BLACK);
-
-            if(_g.multikill_timer > 0)
+            else
             {
-                DrawRectangle(175, 40, 50*(_g.multikill_timer/MULTIKILL_TIME), 10, BLACK);
-                DrawTextEx(font_12, "+", {175, 60}, 12, 1.2f, BLACK);
-                DrawTextEx(font_12, std::to_string((int)(_g.point_stash*(1+_g.multikills/15.f))).c_str(), {185, 60}, 12, 1.2f, BLACK);
+
+                DrawTexturePro(bg_texture, bg_src, bg_dest, Vector2Zero(), 0.0f, WHITE);
+
+                BeginMode2D(world_camera);
+
+                    draw();
+                    int cost_w = MeasureTextEx(font_12, std::to_string(_g.min_cost).c_str(), 12, 1.2f).x;
+                    DrawTextEx(font_12, std::to_string(_g.min_cost).c_str(), {-(cost_w/2.f), -1.f}, 12, 1.f, BLACK);
+
+                EndMode2D();
+
+                //ui should go here
+                bool crate_on_screen = true;
+                Vector2 cam_center = Vector2Subtract(world_camera.target, world_camera.offset);
+                if(0.0f > cam_center.y+res_y){crate_on_screen=false;}
+                if(0.0f < cam_center.y){crate_on_screen=false;}
+                if(0.0f > cam_center.x+res_x){crate_on_screen=false;}
+                if(0.0f < cam_center.x){crate_on_screen=false;}
+                if(!crate_on_screen)
+                {
+                    float siz = 30.0f;
+                    Vector2 heading = Vector2Subtract({0.0f, 0.0f}, Vector2Add(cam_center,{res_x/2.0f, res_y/2.0f}));
+                    heading.x = Clamp(heading.x, -res_x/2.0f+siz, res_x/2.0f-siz);
+                    heading.y = Clamp(heading.y, -res_y/2.0f+siz, res_y/2.0f-siz);
+
+                    Vector2 dir = Vector2Normalize(heading);
+                    float angle = acosf(Vector2DotProduct({0.0f, -1.0f}, dir));
+                    if(dir.x > 0.0f){angle*=-1.0f;}
+
+                    Rectangle arrow_source = {0.0f, 0.0f, (float)arrow_texture.width, (float)arrow_texture.height};
+                    Rectangle arrow_dest = {res_x/2.0f+heading.x, res_y/2.0f+heading.y, siz, siz};
+
+                    DrawTexturePro(arrow_texture, arrow_source, arrow_dest, {siz/2.0f, siz/2.0f}, -angle*(360.0f/TAU), { 255, 255, 255, 60 });
+                }
+
+                //DrawText(std::to_string(spawn_time).c_str(), 10, 10, 10, WHITE);
+                //DrawText(std::to_string(actor_list.size()).c_str(), 10, 25, 10, WHITE);
+                int score_width = MeasureTextEx(font_24, std::to_string(_g.score).c_str(), 24, 2.4f).x;
+                
+                DrawTextEx(font_24, std::to_string(_g.score).c_str(), {res_x-score_width-30.f, 10.f}, 24, 2.4f, BLACK);
+
+                //health
+                int health_width = MeasureTextEx(font_12, std::to_string(PLAYER.health).c_str(), 12, 1.2f).x;
+                DrawRectangle(20, 20, PLAYER.health / 1.0f, 15, {132, 228, 102, 255});
+                DrawTextEx(font_12, std::to_string(PLAYER.health).c_str(), {70.f-(health_width/2), 23.f}, 12, 1.2f, BLACK);
+
+                //gun and durability
+                Color col = {255, 223, 50, 255};
+                float percent = (float)_g.gun_durability/(float)gun_list[_g.curr_gun].durability*100.0f;
+                char ammo_text [5];
+                itoa((int)percent, ammo_text, 10);
+                strcat(ammo_text, "%");
+
+                int ammo_width = MeasureTextEx(font_12, ammo_text, 12, 1.2f).x;
+
+                if(percent > 100.0f){col = {253, 0, 187, 255};percent = 100.0f;}
+                if(percent <= 20.0f){col = RED;}
+
+                DrawRectangle(20, 40, percent, 15, col);
+                DrawTextEx(font_12, ammo_text, {70.f-(ammo_width/2), 43.f}, 12, 1.2f, BLACK);
+
+                DrawTextEx(font_12, gun_list[_g.curr_gun].name, {20, 60}, 12, 1.2f, BLACK);
+
+
+                //blood
+                DrawTextEx(font_12, std::to_string((int)_g.blood).c_str(), {175, 20}, 12, 1.2f, BLACK);
+
+                if(_g.multikill_timer > 0)
+                {
+                    DrawRectangle(175, 40, 50*(_g.multikill_timer/MULTIKILL_TIME), 10, BLACK);
+                    DrawTextEx(font_12, "+", {175, 60}, 12, 1.2f, BLACK);
+                    DrawTextEx(font_12, std::to_string((int)(_g.point_stash*(1+_g.multikills/15.f))).c_str(), {185, 60}, 12, 1.2f, BLACK);
+                }
+
+                if(!PLAYER.exists){DrawTextEx(font_18, "Press R to Restart", {res_x/2.f-(MeasureTextEx(font_18, "Press R to Restart", 18, 1.8f).x)/2.f, (res_y/2)-30}, 18, 1.8f, BLACK);}
+
             }
-
-            if(!PLAYER.exists){DrawTextEx(font_18, "Press R to Restart", {res_x/2.f-(MeasureTextEx(font_18, "Press R to Restart", 18, 1.8f).x)/2.f, (res_y/2)-30}, 18, 1.8f, BLACK);}
-
         EndTextureMode();
 
         BeginDrawing();

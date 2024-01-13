@@ -64,6 +64,8 @@ extern float health_timer;
 
 #define PLAYER actor_list[0]
 
+extern bool in_main_menu;
+
 extern Vector2 cursor_pos;
 extern Camera2D world_camera;
 extern Texture bg_texture;
@@ -103,7 +105,7 @@ void draw_line_round(float, float, float, float, float, Color);
 void cursor_set();
 void load_bullets();
 void load_guns();
-void new_crate();
+void main_menu();
 void spawn_enemies();
 void swap_gun();
 

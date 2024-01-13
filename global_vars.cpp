@@ -10,6 +10,8 @@ void(*(actor_init[]))(Actor*) = {empty_actor_init, player_init, basic_enemy_init
 void(*(actor_step[]))(Actor*) = {empty_actor_step, player_step, basic_enemy_step, basic_shooter_step, wall_slime_step, scared_bomber_step};
 void(*(actor_draw[]))(Actor*) = {empty_actor_draw, player_draw, basic_enemy_draw, basic_shooter_draw, wall_slime_draw, scared_bomber_draw};
 
+bool in_main_menu = true;
+
 Vector2 cursor_pos;
 Camera2D world_camera;
 Texture bg_texture;

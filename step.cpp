@@ -3,7 +3,6 @@
 
 void step()
 {
-    UpdateMusicStream(song);
     if(!PLAYER.exists && IsKeyPressed(KEY_R)){
         restart();
     }
